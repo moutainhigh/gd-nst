@@ -1,2 +1,0 @@
-gd.notifyAssignFailureUrl=${gd.interfaceBase.url}nst2/order/logisticalNotify
-gd.callbackOrderUrl=${gd.interfaceBase.url}callbackOrder/updateStatus

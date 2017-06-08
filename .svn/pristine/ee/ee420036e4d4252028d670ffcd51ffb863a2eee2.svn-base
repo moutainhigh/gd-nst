@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<sqlMap namespace="MemberInfo">    
-     <sql id="findDeviceTokenById">
-         <![CDATA[
-            SELECT id,deviceTokens,appType,deviceApp,deviceType from member_info WHERE id=:memberId
-         ]]>
-     </sql>
-</sqlMap>
