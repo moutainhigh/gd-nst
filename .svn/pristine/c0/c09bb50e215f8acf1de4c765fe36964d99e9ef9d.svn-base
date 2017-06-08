@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="OrderInfo">
+<sql id="insert">
+<![CDATA[
+	INSERT INTO order_info (
+		orderNo,
+		sourceId,
+		carId,
+		shipperMemberId,
+		driverMemberId,
+		orderBeforeId,
+		confirmOrderTime,
+		orderStatus,
+		createUserId,
+		createTime,
+		updateUserId,
+		updateTime,
+		transStatus
+	)
+	VALUES
+		(
+			:orderNo ,
+			:sourceId ,
+			:carId,
+			:shipperMemberId ,
+			:driverMemberId ,
+			:orderBeforeId,
+			now(),
+			:orderStatus ,
+			:createUserId ,
+			now(),
+			:updateUserId ,
+			:updateTime,
+			:transStatus
+		)
+]]>
+</sql>
+
+<sql id="getNstOrderNo">                 
+ 	<![CDATA[
+		SELECT nextval('nst_order')
+ 	]]>
+ 	</sql>
+
+<!-- 查询7天未确认收货的运单集合   ps：过期时间为7天。3天的秒数为 604800 -->
+<sql id="queryOrderInfoList">                 
+ <![CDATA[
+	select id,orderNo,sourceId,orderStatus,confirmOrderTime,orderBeforeId from order_info  
+		where UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(confirmOrderTime)>=604800 and orderStatus=:orderStatus
+ ]]>
+ </sql>
+
+<!-- 根據貨源ID  查詢貨源信息 -->
+<sql id="queryOrderInfoBySourceId">                 
+ <![CDATA[
+	select id,orderNo,sourceId,orderStatus,orderBeforeId,confirmOrderTime from order_info  
+		where sourceId=:sourceId
+ ]]>
+ </sql>
+ 
+ 
+ <!-- 查询运单信息  根据货源ID或者预订单ID -->
+<sql id="queryOrderInfoBySourceIdOrOrderBeforeId">                 
+ <![CDATA[
+	select * from order_info  
+		where 1=1
+		<#if sourceId?exists && sourceId!="" >
+			 and sourceId=:sourceId
+		</#if>
+		<#if orderBeforeId?exists && orderBeforeId!="" >
+			 and orderBeforeId=:orderBeforeId
+		</#if>
+		LIMIT 0,1
+		
+ ]]>
+ </sql>
+
+<sql id="update">
+<![CDATA[
+	UPDATE order_info
+		SET updateTime =now(),
+ 			<#if confirmOrderTime?exists && confirmOrderTime!="" >
+				confirmOrderTime=:confirmOrderTime,
+			</#if>
+			<#if confirmGoodsTime?exists && confirmGoodsTime!="" >
+			 	confirmGoodsTime=:confirmGoodsTime,
+			</#if>
+			<#if cancelOrderTime?exists && cancelOrderTime!="" >
+				cancelOrderTime=:cancelOrderTime,
+			</#if>
+			<#if closeReason?exists && closeReason!="" >
+				closeReason=:closeReason,
+			</#if>
+		    <#if transStatus?exists && transStatus!="" >
+				transStatus=:transStatus,
+			</#if>
+ 			orderStatus=:orderStatus
+		WHERE 1=1
+		 <#if id?exists && id!="" >
+			AND id=:id
+		</#if>
+		<#if sourceId?exists && sourceId!="" >
+			AND sourceId=:sourceId
+		</#if>
+]]>
+</sql>
+
+
+
+<sql id="update2">
+<![CDATA[
+	UPDATE order_info
+		SET 
+ 			<#if confirmOrderTime?exists && confirmOrderTime!="" >
+				confirmOrderTime=:confirmOrderTime,
+			</#if>
+			<#if confirmGoodsTime?exists && confirmGoodsTime!="" >
+			 	confirmGoodsTime=:confirmGoodsTime,
+			</#if>
+			<#if cancelOrderTime?exists && cancelOrderTime!="" >
+				cancelOrderTime=:cancelOrderTime,
+			</#if>
+			<#if closeReason?exists && closeReason!="" >
+				closeReason=:closeReason,
+			</#if>
+		    <#if transStatus?exists && transStatus!="" >
+				transStatus=:transStatus,
+			</#if>
+			  <#if orderStatus?exists && orderStatus!="" >
+				orderStatus=:orderStatus,
+			</#if>
+ 			updateTime =now()
+		WHERE  id=:id
+]]>
+</sql>
+<!-- 修改预运单状态 -->
+<sql id="updateOrderBeforeStatus">
+<![CDATA[
+	update  order_before set 
+		sourceStatus=:sourceStatus,
+		updateTime=now()
+		where id=:id 
+]]>
+</sql>
+<!-- ps:nonShowPlatform 针对农商友那边的订单 展示过滤的 条件  -->
+<sql id="queryByConditionPage">
+<![CDATA[
+		SELECT
+			oi.id  as id ,
+			oi.orderNo as orderNo,
+			oi.shipperMemberId,
+			oi.driverMemberId,
+			oi.sourceId as sourceId,
+			oi.orderStatus as orderStatus,
+			so.assignMemberId as logisticsMemberId,
+			so.s_detail as s_detail,
+			so.e_detail as e_detail,
+			so.s_detailed_address as s_detailed_address,
+			so.e_detailed_address as e_detailed_address,
+			so.goodsType,
+			so.shipperMobile as shipperMobile,
+			so.shipperName as shipperName,
+			mi.userName as driverName,
+			mi.mobile as driverMobile,
+			oi.confirmOrderTime as confirmOrderTime,
+			oi.confirmGoodsTime as confirmGoodsTime,
+			IFNULL(oi.payStatus,1) as payStatus,
+			oi.orderBeforeId as orderBeforeId
+		FROM
+			order_info oi
+		INNER JOIN source_shipper so ON (
+			so.id = oi.sourceId
+			AND so.isDeleted = 0
+		)
+		LEFT JOIN member_info mi ON oi.driverMemberId=mi.id
+		where  oi.orderStatus !=3 AND oi.shipper_isDeleted=0
+		<#if shipperMemberId?exists && shipperMemberId!="" >
+			AND oi.shipperMemberId=:shipperMemberId
+		</#if>
+		<#if orderStatus?exists &&( orderStatus==1 || orderStatus==2 )>
+			AND oi.orderStatus=:orderStatus
+		</#if>
+		<#if nonShowPlatform?exists && nonShowPlatform>
+			AND so.platform =0
+		</#if>
+		<#if orderStatus?exists &&( orderStatus==1 || orderStatus==2 )>
+			ORDER BY
+			oi.confirmOrderTime DESC
+		</#if>
+		LIMIT :startRow,:endRow
+]]>
+</sql>
+
+<sql id="getTotal">
+<![CDATA[
+		SELECT
+			count(1)
+		FROM
+			order_info oi
+		INNER JOIN source_shipper so ON (
+			so.id = oi.sourceId
+			AND so.isDeleted = 0
+		)
+		LEFT JOIN member_info mi ON  oi.driverMemberId=mi.id 
+		where oi.orderStatus !=3 AND  oi.shipper_isDeleted=0
+		<#if shipperMemberId?exists && shipperMemberId!="" >
+			AND oi.shipperMemberId=:shipperMemberId
+		</#if>
+		<#if orderStatus?exists &&( orderStatus==1 || orderStatus==2 )>
+			AND oi.orderStatus=:orderStatus
+		</#if>
+		<#if nonShowPlatform?exists && nonShowPlatform>
+			AND so.platform =0
+		</#if>
+]]>
+</sql>
+	<sql id="getOrderBeforeIdByOrderNo">
+		<![CDATA[
+			SELECT orderBeforeId,driverMemberId FROM order_info 
+			WHERE orderNo =:orderNo
+		]]>
+	</sql>
+	
+	
+	<!-- 根据订单编号查询 -->
+	<sql id="getByOrderNo">
+		<![CDATA[
+			SELECT 
+				id, orderNo, sourceId,prePayStatus, carId, orderBeforeId, shipperMemberId, driverMemberId,
+				confirmOrderTime, confirmGoodsTime, cancelOrderTime, orderStatus, transportAmt, transStatus
+			 FROM order_info 
+			 WHERE orderNo = :orderNo
+		]]>
+	</sql>
+	
+	
+	<!-- 查询支付预付款过期的订单信息。ps：只有平台配送的货源才需要支付预付款，并且默认过期时间为3天。
+		此处设置的时间为3天零1小时，秒数为 262800，是为了解决支付中心3天过期后，通知农速通的订单关闭出问题时，
+		通过自行跑定时任务来关闭，设置为3天零1小时，是为了避免在支付中心关闭订单前先关闭了农速通的订单。
+	-->
+	 <sql id="queryPrePaymtenOverdue">
+	 	<![CDATA[
+	    	SELECT 
+	    		oi.id, oi.orderNo, oi.sourceId, oi.orderBeforeId, oi.driverMemberId, oi.shipperMemberId
+	    	FROM 
+	    		order_info oi 
+	    	INNER JOIN 
+	    		source_shipper ss
+	    	ON ss.id = sourceId
+	    	WHERE 
+				oi.prePayStatus = 0 AND oi.orderStatus = 1 AND
+			   UNIX_TIMESTAMP(now()) - UNIX_TIMESTAMP(oi.createTime) >= 262800
+			   AND ss.platform = 1
+	    ]]>
+	</sql> 
+	
+	<!-- 根据id集合更新订单信息的订单状态 -->
+	 <sql id="updateOrderStatusByIds">
+	 	<![CDATA[
+	    	UPDATE 
+	    		order_info SET orderStatus = :orderStatus, updateTime = now(), updateUserId=:updateUserId
+		    		<#if closeReason?exists && closeReason != "">
+						, closeReason=:closeReason
+					</#if>
+			WHERE
+				 id IN (
+					<#list ids as theId>
+						<#if theId_index gt 0>
+								,${theId}
+						<#else>
+								${theId}
+						</#if>
+					</#list>
+				)
+	    ]]>
+	</sql> 
+	
+	<!-- 根据订单编号集合查询 -->
+	 <sql id="queryByOrderNos">
+	 	<![CDATA[
+	    	SELECT 
+	    		id, orderNo, sourceId, orderBeforeId, shipperMemberId, driverMemberId 
+	    	FROM 
+	    		order_info  
+			WHERE
+				 orderNo IN (
+					<#list orderNos as orderNo>
+						<#if orderNo_index gt 0>
+								,"${orderNo}"
+						<#else>
+								"${orderNo}"
+						</#if>
+					</#list>
+				)
+	    ]]>
+	</sql> 
+	
+</sqlMap>

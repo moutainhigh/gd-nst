@@ -1,0 +1,27 @@
+function queryRuleAreaTopList(){
+	var result;
+	$.ajax({
+		async: false, 
+		url: CONTEXT+'memberInfo/queryProvince' ,
+		type:'post',
+		dataType:"json",
+		success : function(data){
+			result = data;
+		}
+	});
+	return result;
+}
+
+function queryRuleAreaChildList(parentId){
+	var result;
+	$.ajax({
+		async: false, 
+		url: CONTEXT+'memberInfo/queryChildArea/'+ parentId,
+		type:'post',
+		dataType:"json",
+		success : function(data){
+			result = data;
+		}
+	});
+	return result;
+}

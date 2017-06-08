@@ -1,0 +1,31 @@
+package cn.gdeng.nst.api.server.ad;
+
+import java.util.Map;
+
+import cn.gdeng.nst.entity.nst.CallstatisticsEntity;
+import cn.gdeng.nst.util.web.api.ApiResult;
+import cn.gdeng.nst.util.web.api.BizException;
+
+/**
+* @author DJB
+* @version 创建时间：2016年8月30日 下午3:51:29
+* 类说明
+*/
+
+
+public interface CallstatisticsService {
+	
+	/**
+	 *  添加拨打电话记录
+	 */
+	
+	ApiResult<Boolean> saveCall(CallstatisticsEntity callstatisticsEntity) throws BizException;
+	
+	
+	/**
+	 *  添加拨打电话记录
+	 */
+	
+	ApiResult<Map<String, String>> saveCallResultMap(CallstatisticsEntity callstatisticsEntity) throws BizException;
+
+}

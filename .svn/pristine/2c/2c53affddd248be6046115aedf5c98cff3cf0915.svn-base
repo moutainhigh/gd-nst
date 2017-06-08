@@ -1,0 +1,250 @@
+package cn.gdeng.nst.admin.controller.admin;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import cn.gdeng.nst.admin.controller.right.AdminBaseController;
+import cn.gdeng.nst.admin.dto.admin.AdminOrderInfoDTO;
+import cn.gdeng.nst.admin.dto.admin.AdminPageDTO;
+import cn.gdeng.nst.admin.service.admin.OrderInfoService;
+import cn.gdeng.nst.enums.MsgCons;
+import cn.gdeng.nst.util.admin.web.CommonUtil;
+import cn.gdeng.nst.util.admin.web.DateUtil;
+import cn.gdeng.nst.util.web.api.ApiResult;
+
+import com.alibaba.dubbo.config.annotation.Reference;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+
+/**
+ * 货运订单
+ * @author dengjianfeng
+ *
+ */
+@Controller
+@RequestMapping("orderInfo")
+public class OrderInfoController extends AdminBaseController{
+
+	@Reference
+	private OrderInfoService orderInfoService;
+	
+	@RequestMapping("index")
+	public String index(){
+		return "orderInfo/list";
+	}
+	
+	@RequestMapping("queryPage")
+	@ResponseBody
+	public String queryPage(HttpServletRequest request){
+		Map<String, Object> paramMap = getParametersMap(request); 
+		setCommParameters(request, paramMap);
+		
+		String startDate = request.getParameter("startDate");
+		String endDate = request.getParameter("endDate");
+		if(StringUtils.isNotBlank(startDate)){
+			String startTime = CommonUtil.getStartOfDay(DateUtil.formateDate(startDate));
+			paramMap.put("startTime", startTime);
+		}
+		if(StringUtils.isNotBlank(endDate)){
+			String endTime = CommonUtil.getEndOfDay(DateUtil.formateDate(endDate));
+			paramMap.put("endTime", endTime);
+		}
+		
+		ApiResult<AdminPageDTO> apiResult = orderInfoService.queryPage(paramMap);
+		if(apiResult != null){
+			return JSONObject.toJSONString(apiResult.getResult(), SerializerFeature.WriteDateUseDateFormat);
+		}
+		return null;
+	}
+	
+	@RequestMapping("detail/{id}")
+	public String detail(@PathVariable("id")Integer id){
+		ApiResult<AdminOrderInfoDTO> apiResult = orderInfoService.getById(id);
+		if(apiResult != null){
+			putModel("orderInfoDTO", apiResult.getResult());
+		}
+		return "orderInfo/detail";
+	}
+	
+	@RequestMapping(value="exportCheck",produces="application/json;charset=utf-8")
+	@ResponseBody
+	public String exportCheck(HttpServletRequest request){
+		//查询参数
+		String startDate = request.getParameter("startDate");
+		String endDate = request.getParameter("endDate");
+		Map<String, Object> paramMap = getParametersMap(request);
+		if(StringUtils.isNotBlank(startDate)){
+			String startTime = CommonUtil.getStartOfDay(DateUtil.formateDate(startDate));
+			paramMap.put("startTime", startTime);
+		}
+		if(StringUtils.isNotBlank(endDate)){
+			String endTime = CommonUtil.getEndOfDay(DateUtil.formateDate(endDate));
+			paramMap.put("endTime", endTime);
+		}
+		
+		ApiResult<Integer> apiResult = orderInfoService.countTotal(paramMap);
+		if(apiResult != null && apiResult.getResult() != null){
+			int total = apiResult.getResult();
+			if(total <= 0){
+				return JSONObject.toJSONString(new ApiResult<String>().withError(MsgCons.C_29005, MsgCons.M_29005));
+			}
+			else if(total > EXPORT_MAX_SIZE){
+				return JSONObject.toJSONString(new ApiResult<String>().withError(MsgCons.C_29006, MsgCons.M_29006));
+			}
+		}
+		return JSONObject.toJSONString(new ApiResult<String>());
+	}
+	
+	@RequestMapping("export")
+	public void export(HttpServletRequest request, HttpServletResponse response){
+		//查询参数
+		Map<String, Object> paramMap = getParametersMap(request);
+		String startDate = request.getParameter("startDate");
+		String endDate = request.getParameter("endDate");
+		if(StringUtils.isNotBlank(startDate)){
+			String startTime = CommonUtil.getStartOfDay(DateUtil.formateDate(startDate));
+			paramMap.put("startTime", startTime);
+		}
+		if(StringUtils.isNotBlank(endDate)){
+			String endTime = CommonUtil.getEndOfDay(DateUtil.formateDate(endDate));
+			paramMap.put("endTime", endTime);
+		}
+
+		OutputStream ouputStream = null;
+		try{
+			String fileName = "货运订单列表"+DateUtil.toString(new Date(), "yyyy-MM-dd_HH:mm:ss");
+            response.setContentType("application/vnd.ms-excel");
+            response.setHeader("Content-disposition", "attachment;filename=" + new String(fileName.getBytes(), "ISO-8859-1") + ".xlsx");
+            ouputStream = response.getOutputStream();
+            
+            SXSSFWorkbook workbook = new SXSSFWorkbook();
+            String[] headers = {"货运订单号", "发货地", "目的地", "货物类型", "货物重量", "发运人", "发运人手机", "承运人", "承运人手机", "订单类型",
+            		"发货方式", "订单生成时间", "订单状态", "支付状态", "支付金额"};
+          
+            int sheetNum = 1;
+			Sheet sheet = createSheet(workbook, sheetNum, headers);
+            
+			// 查询导出数据总数
+			ApiResult<Integer> countApiResult = orderInfoService.countTotal(paramMap);
+			int totalCount = 0;
+            if(countApiResult != null){
+            	totalCount = countApiResult.getResult();
+            }
+            // 计算分几次查询导出数据
+            int exportCount = (totalCount / EXPORT_PAGE_SIZE) + 1;
+            
+            int rowNum = 1; //当前sheet写入行数
+            Integer id = null; //当前分页数据的最后一条数据id
+            for(int i = 0; i < exportCount; i++){
+            	// 查询分页数据
+            	paramMap.put("id", id);
+        		ApiResult<List<AdminOrderInfoDTO>> apiResult = orderInfoService.queryListForExport(paramMap);
+        		List<AdminOrderInfoDTO> list = null;
+        		if(apiResult != null){
+        			list = apiResult.getResult();
+        		}
+        		
+        		if(CollectionUtils.isEmpty(list)){
+        			break;
+        		}
+        		
+        		for(int j = 0, len = list.size(); j < len; j++){
+                   	// 数据已经达到单个sheet的最大行数，新建sheet
+                   	if(rowNum % SHEET_MAX_ROW_NUM == 0){
+                   		sheetNum++;
+                   		sheet = createSheet(workbook, sheetNum, headers);
+                   		rowNum = 1; //重置rowNum
+                   	}
+                   	
+                   	AdminOrderInfoDTO dto = list.get(j);
+                   	writeRowData(sheet, rowNum, dto);
+                    rowNum++;
+                    
+                    // 记录最后一条数据id
+                    if(j == (len - 1)){
+                    	id = dto.getId();
+                    }
+               	}
+            }
+            workbook.write(ouputStream);   
+		}catch(Exception e){
+			e.printStackTrace();
+		}finally {
+            try {
+               ouputStream.flush();
+               ouputStream.close();
+            } catch (IOException e) {
+               e.printStackTrace();
+            }
+        }
+	}
+	
+	/**
+	 * 创建一个sheet，并在第一行写入表头
+	 * @param workbook
+	 * @param sheetNum
+	 * @param headers
+	 * @return
+	 */
+	private Sheet createSheet(SXSSFWorkbook workbook, int sheetNum, String[] headers){
+		String sheetName = "货运订单数据";
+		if(sheetNum > 1){
+			sheetName += sheetNum;
+		}
+		Sheet sheet = workbook.createSheet(sheetName);
+		Row row = sheet.createRow(0);
+        for(int i = 0, len = headers.length; i < len; i++){
+        	row.createCell(i).setCellValue(headers[i]);
+        }
+        return sheet;
+	}
+	
+	private void writeRowData(Sheet sheet, int rowNum, AdminOrderInfoDTO dto){
+		Row row = sheet.createRow(rowNum);
+		
+	    String transportAmt = dto.getTransportAmt() == null ? "" : dto.getTransportAmt().toString();
+	    
+	  	String sDetail = dto.getSDetailStr();
+      	if(dto.getSDetailedAddress() != null){
+      		sDetail += dto.getSDetailedAddress();
+      	}
+      	
+      	String eDetail = dto.getEDetailStr();
+      	if(dto.getEDetailedAddress() != null){
+      		eDetail += dto.getEDetailedAddress();
+      	}
+        
+		
+		row.createCell(0).setCellValue(dto.getOrderNo());
+      	row.createCell(1).setCellValue(sDetail);
+      	row.createCell(2).setCellValue(eDetail);
+      	row.createCell(3).setCellValue(dto.getGoodsTypeStr());
+      	row.createCell(4).setCellValue(dto.getTotalWeight()+"吨");
+      	row.createCell(5).setCellValue(dto.getShipperName());
+      	row.createCell(6).setCellValue(dto.getShipperMobile());
+      	row.createCell(7).setCellValue(dto.getDriverName());
+      	row.createCell(8).setCellValue(dto.getDriverMobile());
+      	row.createCell(9).setCellValue(dto.getSourceTypeStr());
+       	row.createCell(10).setCellValue(dto.getSendGoodsTypeStr());
+       	row.createCell(11).setCellValue(dto.getCreateTimeStr());
+       	row.createCell(12).setCellValue(dto.getOrderStatusStr());
+      	row.createCell(13).setCellValue(dto.getPayStatusStr());
+      	row.createCell(14).setCellValue(transportAmt);
+	}
+}

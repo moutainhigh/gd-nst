@@ -1,0 +1,201 @@
+package cn.gdeng.nst.server.source.impl;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSON;
+import com.aliyun.openservices.ons.api.Action;
+import com.aliyun.openservices.ons.api.ConsumeContext;
+import com.aliyun.openservices.ons.api.Message;
+import com.aliyun.openservices.ons.api.MessageListener;
+import com.aliyun.openservices.ons.api.bean.ProducerBean;
+import com.gudeng.framework.dba.transaction.annotation.Transactional;
+
+import cn.gdeng.nst.api.dto.source.RuleDTO;
+import cn.gdeng.nst.api.dto.source.SourceShipperMqDto;
+import cn.gdeng.nst.dao.BaseDao;
+import cn.gdeng.nst.entity.nst.MqError;
+import cn.gdeng.nst.entity.nst.RuleLogisticAssignEntity;
+import cn.gdeng.nst.enums.MqConstants;
+import cn.gdeng.nst.enums.NstRuleEnum;
+import cn.gdeng.nst.server.source.rule.AssignRule;
+import cn.gdeng.nst.server.source.rule.StrategyContext;
+import cn.gdeng.nst.util.web.api.GSONUtils;
+import cn.gdeng.nst.util.web.api.SerializeUtil;
+
+/**
+ * 货源分配消费者监听
+ * 
+ * @author xiaojun
+ *
+ */
+@Service
+public class SourceShipperListener implements MessageListener {
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
+	/**
+	 * 分配上线
+	 */
+	private static final int ASSIGNLIMT = 3;
+	/**
+	 * 货源分配校验失败常量
+	 */
+	private static final boolean VERIFY_FALSE = false;
+	/**
+	 * 货源分配校验成功常量
+	 */
+	private static final boolean VERIFY_TRUE = true;
+
+	@Resource
+	private BaseDao<?> baseDao;
+	@Resource
+	private ProducerBean taskProducer;
+	@Resource
+	private ProducerBean countProducer;
+
+	/**
+	 * 货源分配MQ消费者
+	 */
+	@Transactional
+	public Action consume(Message message, ConsumeContext context) {
+		RuleDTO dto = new RuleDTO();
+		SourceShipperMqDto shipperMqDto = new SourceShipperMqDto();
+		try {
+			shipperMqDto = (SourceShipperMqDto) SerializeUtil.unserialize(message.getBody());
+			dto.setSourceId(shipperMqDto.getId());
+			// 货源分配前校验
+			Boolean canAssign = assignBeforeVerify(dto);
+			if (!canAssign) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("货源分配前校验失败,货源id：" + dto.getSourceId());
+				}
+				return Action.CommitMessage;
+			}
+			// 验证通过获取分配所需货源信息
+			RuleDTO ruleDto = querySourceToRule(dto);
+			// 获取分配规则策略
+			String ruleCode = getRuleCode(ruleDto);
+			if (logger.isDebugEnabled()) {
+				logger.debug("当前分配的货源id：" + ruleDto.getSourceId() + "执行分配,分配规则为:" + AssignRule.getAssignRule(ruleCode)
+						+ "分配类型为:" + ruleDto.getSourceType());
+			}
+			// 执行分配规则策略
+			Boolean isAssign = StrategyContext.getAssginRule(ruleCode).isAssign(ruleDto);
+			// 规则策略内分配不成功,货源为直发
+			if (!isAssign) {
+				logger.warn("分配不成功,货源直发,货源id：" + dto.getSourceId());
+				baseDao.execute("Rule.assignToDriver", dto);
+			}
+			return Action.CommitMessage;
+		} catch (Exception e) {
+			logger.error("message:", JSON.toJSONString(message));
+			logger.error(JSON.toJSONString(context), e);
+			insertMqError(dto, e.getMessage());
+			return Action.CommitMessage;
+		}
+	}
+
+	/**
+	 * 货源分配前校验
+	 * 
+	 * @param dto
+	 * @return
+	 */
+	private boolean assignBeforeVerify(RuleDTO dto) {
+		logger.info("货源插入前校验:==============货源id" + dto.getSourceId());
+		// 判断货源id是否传入
+		if (dto.getSourceId() == null) {
+			return VERIFY_FALSE;
+		}
+		// 判断货源是否存在
+		RuleDTO ruleDto = querySourceToRule(dto);
+		if (ruleDto == null) {
+			return VERIFY_FALSE;
+		}
+		// 判断货源是否处于分配中状态
+		if (ruleDto.getNstRule().byteValue() != NstRuleEnum.DISTRIBUTING.getCode().byteValue()) {
+			return VERIFY_FALSE;
+		}
+		// 判断货源是否达到分配货源次数限制
+		if (ruleDto.getAssignCount().intValue() == ASSIGNLIMT) {
+			// 超过分配次数货源直发
+			baseDao.execute("Rule.assignToDriver", dto);
+			return VERIFY_FALSE;
+		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("当前分配的货源id：" + ruleDto.getSourceId() + "验证通过");
+		}
+		return VERIFY_TRUE;
+	}
+
+	/**
+	 * 获取分配规则code
+	 * 
+	 * @param dto
+	 * @return
+	 */
+	private String getRuleCode(RuleDTO ruleDto) {
+		RuleLogisticAssignEntity entity = queryRuleLogisticAssignEntity(ruleDto.getShipperMemberId());
+		if (entity != null && ruleDto.getAssignMemberId() == null) {
+			// 将分配memberId 设置为指派的memberid
+			ruleDto.setAssignMemberId(entity.getMemberIdLogistic());
+			ruleDto.setMemberType(entity.getMemberType());
+			if (logger.isDebugEnabled()) {
+				logger.debug(
+						"当前分配的货源id：" + ruleDto.getSourceId() + "---通过货主指派的物流公司/车主为：" + ruleDto.getAssignMemberId());
+			}
+			return AssignRule.SHIPPERASSIGN.getCode();
+		} else {
+			return AssignRule.LOGISTICSASSIGN.getCode();
+		}
+	}
+
+	/**
+	 * 查询货源到规则中组合dto
+	 * 
+	 * @param dto
+	 * @return
+	 */
+	private RuleDTO querySourceToRule(RuleDTO dto) {
+		RuleDTO ruleDto = baseDao.queryForObject("Rule.querySourceToRule", dto, RuleDTO.class);
+		return ruleDto;
+	}
+
+	/**
+	 * 查询货主绑定物流公司
+	 * 
+	 * @param memberId
+	 * @return
+	 */
+	private RuleLogisticAssignEntity queryRuleLogisticAssignEntity(Integer shipperMemberId) {
+		Map<String, Object> paramMap = new HashMap<>();
+		paramMap.put("shipperMemberId", shipperMemberId);
+		RuleLogisticAssignEntity entity = baseDao.queryForObject("Rule.querySourceAssignHis", paramMap,
+				RuleLogisticAssignEntity.class);
+		return entity;
+	}
+
+	/**
+	 * 异常数据存入表 mq_error
+	 * 
+	 * @param dto
+	 */
+	private void insertMqError(Object dto, String remark) {
+		try {
+			MqError mqError = new MqError();
+			mqError.setBizType(MqConstants.BIZ_TYPE_0);
+			mqError.setTopic(MqConstants.TOPIC_SOURCE_SHIPPER);
+			mqError.setContent(GSONUtils.toJson(dto, false));
+			mqError.setCreateUserId(0);
+			mqError.setRemark(remark);
+			baseDao.execute("MqError.insert", mqError);
+		} catch (Exception e) {
+			logger.error("", e);
+		}
+	}
+}

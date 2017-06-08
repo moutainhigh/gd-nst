@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="OrderBefore">
+	<sql id="queryList">
+	<![CDATA[ 
+		SELECT
+			ob.sourceId,
+			ob.sourceStatus,
+			CASE 
+				WHEN sah.memberType=2 then sah.createTime
+            ELSE ob.createTime
+			END as createTime,
+			ob.updateTime,
+			m.userName as driverMemberName,
+			m.mobile as driverMemberMobile,
+			(SELECT logisticTime FROM order_agent WHERE orderBeforeId = ob.id LIMIT 1) as orderAgentLogisticTime,
+			(SELECT confirmOrderTime FROM order_info WHERE orderBeforeId = ob.id LIMIT 1) as orderInfoConfirmOrderTime,
+			(SELECT nstRule FROM source_shipper WHERE id = ob.sourceId) as nstRule
+		FROM
+			order_before ob
+		LEFT JOIN
+			member_info m ON m.id = ob.driverMemberId
+	    LEFT JOIN source_assign_his sah on sah.sourceId=ob.sourceId and sah.`status`=2
+		WHERE
+			ob.sourceStatus > 1 AND ob.sourceId = :sourceId
+	]]>
+	</sql>
+	
+	<sql id="updateShipper">
+	<![CDATA[
+		UPDATE
+			order_before
+		SET
+			shipperName = :shipperName,
+			shipperMobile = :shipperMobile,
+			updateUserId = :updateUserId,
+			updateTime = SYSDATE()
+		WHERE
+			sourceId = :sourceId
+	]]>
+	</sql>
+	
+	<sql id="countTotal">
+	<![CDATA[
+		SELECT
+			count(1)
+		FROM
+			order_before ob
+		LEFT JOIN
+			member_info m ON m.id = ob.shipperMemberId
+		LEFT JOIN
+			source_shipper ss ON ss.id = ob.sourceId
+		LEFT JOIN
+			order_agent oa ON oa.orderBeforeId = ob.id
+		LEFT JOIN
+			order_info oi ON oi.orderBeforeId = ob.id
+		WHERE
+			ob.sourceStatus > 1
+		<#if shipperMobile?exists && shipperMobile != "">
+			AND m.mobile like "%":shipperMobile"%"
+		</#if>
+		<#if regeType?exists && regeType != "">
+			AND m.regeType = :regeType
+		</#if>
+		<#if sProvinceId?exists && sProvinceId != "">
+			AND ss.s_provinceId = :sProvinceId
+		</#if>
+		<#if sCityId?exists && sCityId != "">
+			AND ss.s_cityId = :sCityId
+		</#if>
+		<#if sAreaId?exists && sAreaId != "">
+			AND ss.s_areaId = :sAreaId
+		</#if>
+		<#if eProvinceId?exists && eProvinceId != "">
+			AND ss.e_provinceId = :eProvinceId 
+		</#if>
+		<#if eCityId?exists && eCityId != "">
+			AND ss.e_cityId = :eCityId
+		</#if>
+		<#if eAreaId?exists && eAreaId != "">
+			AND ss.e_areaId = :eAreaId
+		</#if>
+		<#if sourceType?exists && sourceType != "">
+			AND ss.sourceType = :sourceType
+		</#if>
+		<#if releaseStartTime?exists && releaseStartTime != "">
+			AND ss.createTime >= :releaseStartTime
+		</#if>
+		<#if releaseEndTime?exists && releaseEndTime != "">
+			AND ss.createTime <= :releaseEndTime
+		</#if>
+		<#if sourceStatus?exists && sourceStatus != "">
+			AND ob.sourceStatus = :sourceStatus
+		</#if>
+		<#if acceptStartTime?exists && acceptStartTime != "">
+			AND ob.createTime >= :acceptStartTime
+		</#if>
+		<#if acceptEndTime?exists && acceptEndTime != "">
+			AND ob.createTime <= :acceptEndTime
+		</#if>
+		<#if confirmStartTime?exists && confirmStartTime != "">
+			AND 
+			(
+				(oi.confirmOrderTime >= :confirmStartTime AND ss.nstRule != 4) 
+				OR 
+				(oa.logisticTime >= :confirmStartTime AND ss.nstRule = 4)
+			)
+		</#if>
+		<#if confirmEndTime?exists && confirmEndTime != "">
+			AND 
+			(
+				(oi.confirmOrderTime <= :confirmEndTime AND ss.nstRule != 4) 
+				OR 
+				(oa.logisticTime <= :confirmEndTime AND ss.nstRule = 4)
+			)
+		</#if>
+	]]>
+	</sql>
+	
+	<sql id="queryPage">
+	<![CDATA[
+		SELECT
+			ob.sourceId,
+			ob.sourceStatus,
+			ob.createTime,
+			ob.updateTime,
+			ob.driverName,
+			ob.driverMobile,
+			ss.sourceType,
+			ss.nstRule,
+			ss.s_detail as sDetail,
+			ss.e_detail as eDetail,
+			ss.totalWeight,
+			ss.createTime as releaseTime,
+			oa.logisticTime as orderAgentLogisticTime,
+			oi.confirmOrderTime as orderInfoConfirmOrderTime,
+			m.userName as shipperName,
+			m.mobile as shipperMobile,
+			m.regeType
+		FROM
+			order_before ob
+		LEFT JOIN
+			member_info m ON m.id = ob.shipperMemberId
+		LEFT JOIN
+			source_shipper ss ON ss.id = ob.sourceId
+		LEFT JOIN
+			order_agent oa ON oa.orderBeforeId = ob.id
+		LEFT JOIN
+			order_info oi ON oi.orderBeforeId = ob.id
+		WHERE
+			ob.sourceStatus > 1
+		<#if shipperMobile?exists && shipperMobile != "">
+			AND m.mobile like "%":shipperMobile"%"
+		</#if>
+		<#if regeType?exists && regeType != "">
+			AND m.regeType = :regeType
+		</#if>
+		<#if sProvinceId?exists && sProvinceId != "">
+			AND ss.s_provinceId = :sProvinceId
+		</#if>
+		<#if sCityId?exists && sCityId != "">
+			AND ss.s_cityId = :sCityId
+		</#if>
+		<#if sAreaId?exists && sAreaId != "">
+			AND ss.s_areaId = :sAreaId
+		</#if>
+		<#if eProvinceId?exists && eProvinceId != "">
+			AND ss.e_provinceId = :eProvinceId 
+		</#if>
+		<#if eCityId?exists && eCityId != "">
+			AND ss.e_cityId = :eCityId
+		</#if>
+		<#if eAreaId?exists && eAreaId != "">
+			AND ss.e_areaId = :eAreaId
+		</#if>
+		<#if sourceType?exists && sourceType != "">
+			AND ss.sourceType = :sourceType
+		</#if>
+		<#if releaseStartTime?exists && releaseStartTime != "">
+			AND ss.createTime >= :releaseStartTime
+		</#if>
+		<#if releaseEndTime?exists && releaseEndTime != "">
+			AND ss.createTime <= :releaseEndTime
+		</#if>
+		<#if sourceStatus?exists && sourceStatus != "">
+			AND ob.sourceStatus = :sourceStatus
+		</#if>
+		<#if acceptStartTime?exists && acceptStartTime != "">
+			AND ob.createTime >= :acceptStartTime
+		</#if>
+		<#if acceptEndTime?exists && acceptEndTime != "">
+			AND ob.createTime <= :acceptEndTime
+		</#if>
+		<#if confirmStartTime?exists && confirmStartTime != "">
+			AND 
+			(
+				(oi.confirmOrderTime >= :confirmStartTime AND ss.nstRule != 4) 
+				OR 
+				(oa.logisticTime >= :confirmStartTime AND ss.nstRule = 4)
+			)
+		</#if>
+		<#if confirmEndTime?exists && confirmEndTime != "">
+			AND 
+			(
+				(oi.confirmOrderTime <= :confirmEndTime AND ss.nstRule != 4) 
+				OR 
+				(oa.logisticTime <= :confirmEndTime AND ss.nstRule = 4)
+			)
+		</#if>
+		ORDER BY ob.id DESC
+	    LIMIT :startRow,:endRow
+	]]>
+	</sql>
+	
+	<sql id="queryListForExport">
+	<![CDATA[
+		SELECT
+			ob.id,
+			ob.sourceId,
+			ob.sourceStatus,
+			ob.createTime,
+			ob.updateTime,
+			ob.driverName,
+			ob.driverMobile,
+			ss.sourceType,
+			ss.nstRule,
+			ss.s_detail as sDetail,
+			ss.e_detail as eDetail,
+			ss.totalWeight,
+			ss.createTime as releaseTime,
+			oa.logisticTime as orderAgentLogisticTime,
+			oi.confirmOrderTime as orderInfoConfirmOrderTime,
+			m.userName as shipperName,
+			m.mobile as shipperMobile,
+			m.regeType
+		FROM
+			order_before ob
+		LEFT JOIN
+			member_info m ON m.id = ob.shipperMemberId
+		LEFT JOIN
+			source_shipper ss ON ss.id = ob.sourceId
+		LEFT JOIN
+			order_agent oa ON oa.orderBeforeId = ob.id
+		LEFT JOIN
+			order_info oi ON oi.orderBeforeId = ob.id
+		WHERE
+			ob.sourceStatus > 1
+		<#if id?exists && id != "">
+			AND ob.id < :id
+		</#if>
+		<#if shipperMobile?exists && shipperMobile != "">
+			AND m.mobile like "%":shipperMobile"%"
+		</#if>
+		<#if regeType?exists && regeType != "">
+			AND m.regeType = :regeType
+		</#if>
+		<#if sProvinceId?exists && sProvinceId != "">
+			AND ss.s_provinceId = :sProvinceId
+		</#if>
+		<#if sCityId?exists && sCityId != "">
+			AND ss.s_cityId = :sCityId
+		</#if>
+		<#if sAreaId?exists && sAreaId != "">
+			AND ss.s_areaId = :sAreaId
+		</#if>
+		<#if eProvinceId?exists && eProvinceId != "">
+			AND ss.e_provinceId = :eProvinceId 
+		</#if>
+		<#if eCityId?exists && eCityId != "">
+			AND ss.e_cityId = :eCityId
+		</#if>
+		<#if eAreaId?exists && eAreaId != "">
+			AND ss.e_areaId = :eAreaId
+		</#if>
+		<#if sourceType?exists && sourceType != "">
+			AND ss.sourceType = :sourceType
+		</#if>
+		<#if releaseStartTime?exists && releaseStartTime != "">
+			AND ss.createTime >= :releaseStartTime
+		</#if>
+		<#if releaseEndTime?exists && releaseEndTime != "">
+			AND ss.createTime <= :releaseEndTime
+		</#if>
+		<#if sourceStatus?exists && sourceStatus != "">
+			AND ob.sourceStatus = :sourceStatus
+		</#if>
+		<#if acceptStartTime?exists && acceptStartTime != "">
+			AND ob.createTime >= :acceptStartTime
+		</#if>
+		<#if acceptEndTime?exists && acceptEndTime != "">
+			AND ob.createTime <= :acceptEndTime
+		</#if>
+		<#if confirmStartTime?exists && confirmStartTime != "">
+			AND 
+			(
+				(oi.confirmOrderTime >= :confirmStartTime AND ss.nstRule != 4) 
+				OR 
+				(oa.logisticTime >= :confirmStartTime AND ss.nstRule = 4)
+			)
+		</#if>
+		<#if confirmEndTime?exists && confirmEndTime != "">
+			AND 
+			(
+				(oi.confirmOrderTime <= :confirmEndTime AND ss.nstRule != 4) 
+				OR 
+				(oa.logisticTime <= :confirmEndTime AND ss.nstRule = 4)
+			)
+		</#if>
+		ORDER BY ob.id DESC
+	    <#if pageSize?exists && pageSize != "">
+			LIMIT :pageSize
+		</#if>
+	]]>
+	</sql>
+</sqlMap>

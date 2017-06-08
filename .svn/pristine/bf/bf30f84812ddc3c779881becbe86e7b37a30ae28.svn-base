@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title></title>
+		<link href="../../css/mui.min.css" rel="stylesheet" />
+		<link rel="stylesheet" href="../../css/style.css" />
+	</head>
+	<body>
+	<section class="detail-main">
+		<header class="">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left">返回</a>
+			<h1 class="mui-title">货源详情</h1>
+		</header>
+		<div id="detailWarp"></div>
+		
+	</section>
+	</body>
+	<script id="detailTemp" type="text/x-jquery-tmpl">
+		<article class="adr-main" >
+			<p class="pub-time">
+				<span>发布时间：${sendDate.substring(0,10)+"  "+sendDate.substring(10)}</span>
+				<span class="fr red-text">已发布</span>
+			</p>
+			<div class="adr-cont">
+				<aside>
+					<i class="adr-icon"></i>
+					<p class="send-adr"><i></i>发货地</p>
+					<p class="out-adr"><i></i>目的地</p>
+				</aside>
+				<div class="adr-cont-text">
+					<div class="tableWap">
+					<div class="send-address">
+						<p class="adr-area">${s_detail}</p>
+						<p class="adr-bulid">${s_detailed_address}</p>
+					</div>
+					</div>
+					<div class="tableWap">
+					<div class="send-address">
+						<p class="adr-area">${e_detail}</p>
+						<p class="adr-bulid">${e_detailed_address}</p>
+					</div>
+					</div>
+				</div>
+			</div>
+		</article>
+		<article class="car-infor">
+			<ul class="mui-table-view">
+				<li class="mui-table-view-cell">
+					<span class="list-left">距离信息</span>
+					<span class="list-right">运货里程约<em class="red-text">${mileage}</em>公里</span>
+				</li>
+		        <li class="mui-table-view-cell">
+					<span class="list-left">装货时间</span>
+					<span class="list-right">${sendDate.substring(0,10)+"  "+sendDate.substring(10)}</span>
+				</li>
+		        <li class="mui-table-view-cell">
+					<span class="list-left">货物类型</span>
+					<span class="list-right">${goodsTypeStr}</span>
+				</li>
+				<li class="mui-table-view-cell">
+					<span class="list-left">重量/体积</span>
+					<span class="list-right">
+					{{if totalWeight != null}}
+						${totalWeight}吨
+					{{/if}}
+					{{if totalSize != null}}
+						${totalSize}立方
+					{{/if}}
+					</span>
+				</li>
+			</ul>
+		</article>
+		<article class="car-infor">
+			<ul class="mui-table-view">
+				<li class="mui-table-view-cell">
+					<span class="list-left">货品名称</span>
+					<span class="list-right">${goodsName}</span>
+				</li>
+		        <li class="mui-table-view-cell">
+					<span class="list-left">需要车辆</span>
+					<span class="list-right">
+						{{if carLength== "-1.0"}}
+            				不限
+       					 {{else carLength == "-2.0"}}
+            				其他
+       					 {{else}}
+           					 ${carLength}米
+        				 {{/if}}					
+					    ${carTypeStr} 
+						{{if sendGoodsTypeStr != "不限"}}
+						${sendGoodsTypeStr}
+						{{/if}}
+				</span>
+				</li>
+		        <li class="mui-table-view-cell">
+					<span class="list-left">发货方式</span>
+					<span class="list-right">${sendGoodsTypeStr}</span>
+				</li>
+				<li class="mui-table-view-cell">
+					<span class="list-left">意向运费</span>
+					<span class="list-right">
+					{{if freight == 0}}
+						面议
+					{{else}}
+						${freight}元</span>
+					{{/if}}
+					
+				</li>
+				<li class="mui-table-view-cell">
+					<span class="list-left">货主留言</span>
+					<span class="list-right">${remark}</span>
+				</li>
+			</ul>
+		</article>
+		<article class="car-infor">
+			<ul class="mui-table-view">
+				<li class="mui-table-view-cell">
+					<span class="list-left">货源来源</span>
+					<span class="list-right red-text">${goodsSource}</span>
+				</li>
+		        
+			</ul>
+		</article>
+		<article class="hzhu-infor">
+			<p class="info-tit">货主信息</p>
+			<section class="cont-head">
+				<a id="callPhoneIcon" class="phone-icon" data-phone="${mobile}">
+					<i></i>
+				</a>
+				<div class="head-left">
+					<p class="pho-img">
+						{{if iconUrl == null}}
+							<img src="../../images/icon_user_headpic.jpg" width="100%">
+						{{else}}
+							<img src="${iconUrl}" width="100%">
+						{{/if}}
+			
+					</p>
+					<div class="pho-info">
+						<span class="person-name">${userName}</span>
+						{{if cerPersonalStatus == 2 }}
+							<i class="yirenz-icon"></i>
+						{{else}}
+            				<i class="yirenz-icon wrz-icon"></i>
+						{{/if}}
+						<p class="pho-number" id="callPhone">${mobile}</p>
+					</div>
+				</div>
+			</section>
+		</article>
+	</script>
+	<script src="../../js/mui.min.js"></script>
+	<script type="text/javascript" src="../../js/jquery.js" ></script>
+	<script type="text/javascript" src="../../js/jquery.tmpl.min.js" ></script>
+	<script type="text/javascript" src="../../js/dataJSON.js" ></script>
+	<script type="text/javascript" src="../../js/basic.js" ></script>
+	<script type="text/javascript" charset="utf-8">
+		mui.init();
+		//console.log("datedatilData.result: "+ JSON.stringify(datilData.result))
+		//var recordList = datilData.recordList;
+		//$('#detailTemp').tmpl(detaillist).appendTo('#detailWarp');
+		/*获取本地地址  */
+		function getRootPath_web() {
+            var curWwwPath = window.document.location.href;
+            var pathName = window.document.location.pathname;
+            var pos = curWwwPath.indexOf(pathName);
+            var localhostPaht = curWwwPath.substring(0, pos);
+            var projectName = pathName.substring(0, pathName.substr(1).indexOf('/') + 1);
+            return localhostPaht;
+        }
+		var CONTEXT = getRootPath_web();
+		var sourceId =search("sourceId");
+		
+		try{
+			window.webkit.messageHandlers.NativeEncrypt.postMessage('{"data":'+'"{\'sourceId\':'+sourceId+'}'+'","fun":"encryptCompleted"}');
+		}catch(e){}
+		try{
+			var andData = JavaH5WebInterface.enCode("sourceId:"+sourceId);
+			$.ajax({
+				url: CONTEXT+"/v1/car/queryGoodsDetail",
+				data : {"param":andData},
+				type: "get",
+				dataType: "text",
+				contentType: "application/json",
+				success: function(data){
+					var andData = JavaH5WebInterface.deCode(data);
+					var datasVal = JSON.stringify(andData).replace(/\\| /g,"");
+					datasVal = JSON.parse(datasVal.substring(1,datasVal.length-1));
+					//$('#detailWarp').html(datasVal);
+					datasVal = datasVal.result;
+					$('#detailTemp').tmpl(datasVal).appendTo('#detailWarp');
+					window.webkit.messageHandlers.NativeDecrypt.postMessage('{"data":"'+data+'","fun":"decryptCompleted"}');
+				}
+			});
+		}catch(e){}
+		
+	function encryptCompleted(datas){
+		//$('#detailWarp').html(JSON.stringify(datas));
+			$.ajax({
+				url: CONTEXT+"/v1/car/queryGoodsDetail",
+				data : {"param":datas},
+				type: "get",
+				dataType: "text",
+				contentType: "application/json",
+				success: function(data){
+					//window.webkit.messageHandlers.NativeEncrypt.postMessage("待加密数据");
+					window.webkit.messageHandlers.NativeDecrypt.postMessage('{"data":"'+data+'","fun":"decryptCompleted"}');
+					//window.webkit.messageHandlers.NativeEncrypt.postMessage('{"data":"'+data+'","fun":"decryptCompleted"}');
+				},
+				error:function(data){
+					//异常处理；
+					
+					//console.log("error:"+type);
+					console.log("data2 error--->: "+JSON.stringify(data));
+				}
+			});
+	}
+		/* 解密返回 */
+		function decryptCompleted(data){
+			//$('#detailWarp').html(JSON.stringify(data).replace(/\\| /g,""));
+			//data.replace(/\/| /g,"") 
+			var datasVal = JSON.stringify(data).replace(/\\| /g,"");
+			datasVal = JSON.parse(datasVal.substring(1,datasVal.length-1));
+			//$('#detailWarp').html(datasVal);
+			datasVal = datasVal.result;
+			$('#detailTemp').tmpl(datasVal).appendTo('#detailWarp');
+		}
+		//打电话功能
+		 $("#detailWarp").on("tap","#callPhoneIcon",function(){
+			//$(this).html("aaa")
+			 var phone = $(this).attr("data-phone")
+			 try{
+				 window.webkit.messageHandlers.NativeMakeCall.postMessage(phone);
+			 }catch(e){}
+			 try{
+				 JavaH5WebInterface.callMobile(phone)
+			 }catch(e){}
+			//window.webkit.messageHandlers.NativeMakeCall.postMessage("10010");
+		}) 
+	</script>
+
+</html>

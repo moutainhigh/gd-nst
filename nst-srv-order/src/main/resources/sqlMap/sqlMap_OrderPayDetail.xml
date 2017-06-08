@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="OrderPayDetail">
+	<sql id="updateOrderPayStatus">
+		<![CDATA[
+			UPDATE order_info SET
+			updateTime =SYSDATE()
+            <#if payStatus?exists && payStatus!="" >
+				,payStatus=:payStatus
+			</#if>
+			<#if transportAmt?exists && transportAmt!="" >
+				,transportAmt=:transportAmt
+			</#if>
+		    WHERE orderNo=:orderNo
+		]]>
+	</sql>
+	<sql id="updateOrderAgentPayStatus">
+		<![CDATA[
+			UPDATE order_agent SET
+			updateTime =SYSDATE()
+            <#if payStatus?exists && payStatus!="" >
+				,payStatus=:payStatus
+			</#if>
+			<#if infoAmt?exists && infoAmt!="" >
+				,infoAmt=:infoAmt
+			</#if>
+		    WHERE orderNo=:orderNo
+		]]>
+	</sql>
+</sqlMap>

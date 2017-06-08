@@ -1,0 +1,47 @@
+package cn.gdeng.nst.server.order.quartz;
+
+/**
+ * 物流公司  倒计时 10分钟 没有操作  信息订单进入 已关闭  释放货源信息
+ * 
+ * @author huangjianhua  2016年8月12日  上午11:31:32
+ * @version 1.0
+ */
+public class OrderHandleTimeOutTaskImpl {/*
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
+	@Reference
+	private OrderAgentService orderAgentService;
+	@Reference
+	private OrderInfoService orderInfoService;
+	@Reference
+	private GoodsLogService goodsLogService;
+	*//**
+	 * 定时
+	 *//*
+	public void execute(){  
+		logger.info("OrderHandleTimeOutTaskImpl begin");
+		Long beginDate=System.currentTimeMillis();
+		//未处理的状态
+        Map<String, Object> map=new HashMap<>();
+        map.put("orderStatus", 1);
+       // ApiResult<List<OrderAgentListVo>> apiResult=orderAgentService.queryOrderAgentList(map);
+        ApiResult<List<OrderAgentListVo>> apiResult=new ApiResult<>();
+        if (CollectionUtils.isEmpty(apiResult.getResult())) {
+			return;
+		}
+		for (OrderAgentListVo vo : apiResult.getResult()) {
+			OrderInfoDTO dto = new OrderInfoDTO();
+			dto.setSourceId(vo.getSourceId());
+			try {
+				// 释放货源
+				orderInfoService.refuseOrderInfo(dto);
+				//step2 记录处理超时日志
+				goodsLogService.simpleSave(vo.getSourceId(), OperateEnum.LOGISTICSRECEIVETIMEOUT.getName(), "admin");
+			} catch (Exception e) {
+				logger.error("OrderHandleTimeOutTaskImpl error:", e);
+				// 记录处理异常
+			}
+		}
+        Long endDate=System.currentTimeMillis()-beginDate;
+        logger.info("OrderHandleTimeOutTaskImpl end,time consume:{}ms",endDate);
+    }  
+*/}

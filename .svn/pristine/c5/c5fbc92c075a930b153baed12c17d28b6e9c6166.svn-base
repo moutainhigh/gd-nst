@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cxf="http://cxf.apache.org/core"
+	xmlns:p="http://cxf.apache.org/policy" xmlns:ss="http://www.springframework.org/schema/security"
+	xmlns:jaxws="http://cxf.apache.org/jaxws" xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd 
+   	http://cxf.apache.org/core http://cxf.apache.org/schemas/core.xsd 
+   	http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd 
+   	http://cxf.apache.org/policy http://cxf.apache.org/schemas/policy.xsd
+     http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+   	http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd
+   	http://cxf.apache.org/bindings/soap http://cxf.apache.org/schemas/configuration/soap.xsd 
+   	  http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+   	http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd 
+   	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+   	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+   	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+   	http://code.alibabatech.com/schema/dubbo 
+	http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+   	
+	<mvc:annotation-driven>
+	  <mvc:message-converters register-defaults="true">
+	    <bean class="cn.gdeng.nst.web.interceptor.FastJsonHttpMessageConverter">  
+	      <property name="supportedMediaTypes" value="application/json"/>
+	      <!--设置fastjson特性-->
+	      <property name="features">
+	        <array>
+	          <!--设置null值也要输出，fastjson默认是关闭的-->
+	          <value>WriteMapNullValue</value>
+	          <!--设置使用文本方式输出日期，fastjson默认是long-->
+	          <value>WriteDateUseDateFormat</value>
+	        </array>
+	      </property>
+	    </bean>
+	  </mvc:message-converters>  
+	</mvc:annotation-driven>
+
+	<dubbo:annotation package="cn.gdeng.nst.web"/>
+	<context:component-scan base-package="cn.gdeng.nst.web.controller" />
+
+	<!--  <mvc:annotation-driven conversion-service="conversionService" />-->
+	<!--===================== view resovler ===================== -->
+	<bean id="viewResolver" abstract="true">
+		<property name="attributes">
+			<props>
+				<prop key="resRoot">@{resRoot}</prop>
+				<prop key="uaaResRoot">@{uaaResRoot}</prop>
+				<prop key="minSuffix">@{minSuffix}</prop>
+				<prop key="appVersion">@{appVersion}</prop>
+				<prop key="imgHost">@{imgHost}</prop>
+				<prop key="imgHostTag">@{imgHostTag}</prop>
+				<prop key="imgHostNumber">@{imgHostNumber}</prop>
+			</props>
+		</property>
+	</bean>
+
+	<bean id="jstlViewResolver"
+		class="org.springframework.web.servlet.view.UrlBasedViewResolver"
+		parent="viewResolver">
+		<property name="order" value="2" />
+		<property name="viewClass"
+			value="org.springframework.web.servlet.view.JstlView" />
+		<property name="prefix" value="/WEB-INF/jsp/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	<bean id="webPropertyConfig"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:properties/main-setting-web.properties</value>
+			</list>
+		</property>
+		<property name="placeholderPrefix" value="@{" />
+		<property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" />
+	</bean>
+
+	<bean id="fmXmlEscape" class="freemarker.template.utility.XmlEscape" />
+	<bean id="fmHtmlEscape" class="freemarker.template.utility.HtmlEscape" />
+
+	<bean id="fmImgUrl" class="com.gudeng.framework.web.freemarker.MultiDomUrl">
+		<property name="host" value="@{imgHost}" />
+		<property name="imgHostTag" value="@{imgHostTag}" />
+		<property name="imgHostNumber" value="@{imgHostNumber}" />
+	</bean>
+
+	<!-- ====================== i18n =============================== -->
+	<bean id="messageSource"
+		class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+		<property name="basename" value="classpath:i18n/messages" />
+	</bean>
+
+	<!-- SpringMVC上传文件时，需要配置MultipartResolver处理器   by ysk-->
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="defaultEncoding" value="UTF-8" />
+		<!-- 指定所上传文件的总大小不能超过200KB。注意maxUploadSize属性的限制不是针对单个文件，而是所有文件的容量之和 -->
+		<property name="maxUploadSize" value="10240000" />
+		<property name="maxInMemorySize" value="40960"></property>
+	</bean>
+		<!-- 拦截器 -->
+ 	<mvc:interceptors>
+		<mvc:interceptor>
+		<mvc:mapping path="/**" />
+			<bean class="cn.gdeng.nst.web.interceptor.SessionInterceptor">
+				<property name="doNotCheckUrl">
+					<list>
+						<value>v1/member/login</value>
+						<value>v1/member/logout</value>
+						<value>v1/member/getVerifyCode</value>
+						<value>v1/member/registerNext</value>
+						<value>v1/member/registerOrUpdatePassword</value>
+						<value>v1/member/findPasswordOrResetPasswordNext</value>
+						<value>v1/pay/queryOrderDetail</value>
+						<value>v1/ad/queryNewAd</value>
+						<value>v1/member/getToken</value>
+						<value>v1/car/queryGoodsAll</value>
+						<value>v1/area/listTopArea</value>
+						<value>v1/area/listChildArea</value>
+						<value>v1/app/checkAppVesion</value>
+						<value>v1/app/appStart</value>
+						<value>v1/assign/validateAssign</value>
+						<value>v1/pay/payPrePaymenOverdue</value>
+						<value>OrderInfoTrans/queryOrderInfoTransAndSourceExamineByOrderNo</value>
+						<value>v1/pay/repealPrePaymentSucc</value>
+					</list>
+				</property>
+				<!--是否开启拦截器 0 关闭 1 开启-->
+				<property name="validate" value="${maven.session.inte.validate}"/>
+			</bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
+	
+	<!-- 配置默认的公共异常处理器 -->
+	<bean id="commonExceptionHandler" class="cn.gdeng.nst.web.exception.handler.CommonExceptionHandler" />
+	
+</beans>

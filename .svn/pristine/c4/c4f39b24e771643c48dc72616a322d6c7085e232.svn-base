@@ -1,0 +1,37 @@
+$(function(){
+	// 同步默认广告-同步渠道-获取渠道上架广告列表
+	$("#syncChannelSelect").change(function(){
+		$("#syncAdList").html("");
+		var channel = $(this).val();
+		if (channel < 0) {
+			return;
+		}
+		$.ajax({
+	        type: "POST",
+	        url: CONTEXT + "advertisement/listDefaultAdByChannel/"+channel,
+	        dataType: "json",
+	        success: function(data){
+	        	if (data.code == 10000) {
+	        		var syncAdList = "";
+	        		$.each(data.result, function(index, item){
+	        			syncAdList += "<label><input type='checkbox' value='"+item.id+"' name='adId'/>默认广告"+item.sort+"："+item.name+"</label><br>";
+	        		});
+	        		$("#syncAdList").html(syncAdList);
+	        	}
+	        }
+		});
+	});
+	
+	// 全选
+	$("#selectAllBtn").click(function(){
+		if ($(this).attr("checked")) {
+			$.each($("input[name='adId']"), function(index, item) {
+				$(item).attr("checked", true);
+			});
+		} else {
+			$.each($("input[name='adId']"), function(index, item) {
+				$(item).attr("checked", false);
+			});
+		}
+	});
+});

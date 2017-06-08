@@ -1,0 +1,23 @@
+package cn.gdeng.nst.admin.service.admin;
+
+import java.util.List;
+import java.util.Map;
+
+import cn.gdeng.nst.admin.dto.admin.AdminPageDTO;
+import cn.gdeng.nst.admin.dto.admin.AdminSourceShipperDTO;
+import cn.gdeng.nst.util.web.api.ApiResult;
+
+public interface SourceShipperService {
+
+	ApiResult<AdminPageDTO> queryPage(Map<String, Object> paramMap);
+	
+	ApiResult<AdminSourceShipperDTO> getById(Integer id);
+	
+	ApiResult<Integer> update(AdminSourceShipperDTO sourceShipperDTO);
+
+	ApiResult<int[]> batchDelete(String[] ids, String loginUserId);
+	
+	ApiResult<Integer> countTotal(Map<String, Object> paramMap);
+	
+	ApiResult<List<AdminSourceShipperDTO>> queryListForExport(Map<String, Object> paramMap);
+}

@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="SourceShipper">
+	<sql id="queryListByPage"> 
+ 	<![CDATA[ 
+		SELECT
+			ss.id,
+			ss.memberId,
+			ss.sourceType,
+			ss.s_detail as sDetail,
+			ss.e_detail as eDetail,
+			ss.s_detailed_address as sDetailedAddress,
+			ss.e_detailed_address as eDetailedAddress,
+			ss.goodsType,
+			ss.createTime,
+			ss.totalWeight,
+			ss.sendGoodsType,
+			ss.freight,
+			ss.clients,
+			ss.sourceStatus,
+			m.userName as memberName,
+			m.mobile as memberMobile,
+			ss.nstRule,
+			ss.isDeleted,
+			ss.platform,
+			(SELECT count(id) FROM order_before WHERE sourceId = ss.id) as orderBeforeCount,
+			assigner.mobile as logisticMobile,
+			CASE
+				WHEN sah.memberType=2 THEN assigner.userName
+       		ELSE
+			    (SELECT companyName FROM member_cer WHERE ss.assignMemberId = memberId AND userType = 2 LIMIT 1)
+ 			END AS logisticName
+		FROM
+			source_shipper ss
+		LEFT JOIN
+			member_info as assigner ON assigner.id = ss.assignMemberId
+		LEFT JOIN 
+			source_assign_his sah ON sah.sourceId=ss.id AND sah.`status`=2
+		LEFT JOIN
+			member_info m ON m.id = ss.memberId
+		WHERE
+			1 = 1
+		<#if id?exists && id != "">
+			AND ss.id = :id
+		</#if>
+		<#if logisticMobile?exists && logisticMobile != "">
+			AND assigner.mobile = :logisticMobile 
+		</#if>
+		<#if memberId?exists && memberId != "">
+			AND ss.memberId = :memberId
+		</#if>	
+		<#if sProvinceId?exists && sProvinceId != "">
+			AND ss.s_provinceId = :sProvinceId
+		</#if>
+		<#if sCityId?exists && sCityId != "">
+			AND ss.s_cityId = :sCityId
+		</#if>
+		<#if sAreaId?exists && sAreaId != "">
+			AND ss.s_areaId = :sAreaId
+		</#if>
+		<#if eProvinceId?exists && eProvinceId != "">
+			AND ss.e_provinceId = :eProvinceId 
+		</#if>
+		<#if eCityId?exists && eCityId != "">
+			AND ss.e_cityId = :eCityId
+		</#if>
+		<#if eAreaId?exists && eAreaId != "">
+			AND ss.e_areaId = :eAreaId
+		</#if>
+		<#if memberName?exists && memberName != "">
+			AND m.userName like "%":memberName"%"
+		</#if>
+		<#if memberMobile?exists && memberMobile != "">
+			AND m.mobile like "%":memberMobile"%"
+		</#if>
+		<#if nstRule?exists && nstRule != "">
+			<#if nstRule == "1">
+				AND ss.nstRule IN (1, 4)
+			<#elseif nstRule == "2">
+				AND (ss.nstRule IN (2,5) OR (ss.nstRule = 3 AND ss.platform = 0))
+			<#elseif nstRule == "3">
+				AND (ss.nstRule IN (6, 7) OR (ss.nstRule = 3 AND ss.platform = 1))
+			</#if>
+		</#if>
+		<#if sendGoodsType?exists && sendGoodsType != "">
+			AND ss.sendGoodsType = :sendGoodsType
+		</#if>
+		<#if startTime?exists && startTime != "">
+			AND ss.createTime >= :startTime
+		</#if>
+		<#if endTime?exists && endTime != "">
+			AND ss.createTime <= :endTime
+		</#if>
+		<#if goodsType?exists && goodsType != "">
+			AND ss.goodsType = :goodsType
+		</#if>
+		<#if sourceType?exists && sourceType != "">
+			AND ss.sourceType = :sourceType
+		</#if>
+		<#if clients?exists && clients != "">
+			AND ss.clients = :clients
+		</#if>
+		<#if sourceStatus?exists && sourceStatus != "">
+			<#if sourceStatus == "1">
+				AND ss.sourceStatus IN (1, 2)
+			<#else>
+				AND ss.sourceStatus = :sourceStatus
+			</#if>
+		</#if>
+		<#if isDeleted?exists && isDeleted != "">
+			AND ss.isDeleted = :isDeleted
+		</#if>
+		ORDER BY ss.createTime DESC
+	    LIMIT :startRow,:endRow  
+ 	]]> 
+ 	</sql>
+ 	
+ 	<sql id="countTotal"> 
+ 	<![CDATA[ 
+        SELECT
+			count(*)
+		FROM
+			source_shipper ss 
+		<#if logisticMobile?exists && logisticMobile != "">
+		LEFT JOIN
+			member_info as assigner ON assigner.id = ss.assignMemberId
+		</#if>
+		<#if (memberName?exists && memberName != "") || (memberMobile?exists && memberMobile != "")>
+		LEFT JOIN
+			member_info m ON m.id = ss.memberId
+		</#if>
+		WHERE
+			1 = 1 
+		<#if id?exists && id != "">
+			AND ss.id = :id
+		</#if>	
+		<#if logisticMobile?exists && logisticMobile != "">
+			AND assigner.mobile = :logisticMobile
+		</#if>
+		<#if memberId?exists && memberId != "">
+			AND ss.memberId = :memberId
+		</#if>	
+		<#if sProvinceId?exists && sProvinceId != "">
+			AND ss.s_provinceId = :sProvinceId
+		</#if>
+		<#if sCityId?exists && sCityId != "">
+			AND ss.s_cityId = :sCityId
+		</#if>
+		<#if sAreaId?exists && sAreaId != "">
+			AND ss.s_areaId = :sAreaId
+		</#if>
+		<#if eProvinceId?exists && eProvinceId != "">
+			AND ss.e_provinceId = :eProvinceId
+		</#if>
+		<#if eCityId?exists && eCityId != "">
+			AND ss.e_cityId = :eCityId
+		</#if>
+		<#if eAreaId?exists && eAreaId != "">
+			AND ss.e_areaId = :eAreaId
+		</#if>
+		<#if memberName?exists && memberName != "">
+			AND m.userName like "%":memberName"%"
+		</#if>
+		<#if memberMobile?exists && memberMobile != "">
+			AND m.mobile like "%":memberMobile"%"
+		</#if>
+		<#if nstRule?exists && nstRule != "">
+			<#if nstRule == "1">
+				AND ss.nstRule IN (1, 4)
+			<#elseif nstRule == "2">
+				AND (ss.nstRule IN (2,5) OR (ss.nstRule = 3 AND ss.platform = 0))
+			<#elseif nstRule == "3">
+				AND (ss.nstRule IN (6, 7) OR (ss.nstRule = 3 AND ss.platform = 1))
+			</#if>
+		</#if>
+		<#if sendGoodsType?exists && sendGoodsType != "">
+			AND ss.sendGoodsType = :sendGoodsType
+		</#if>
+		<#if startTime?exists && startTime != "">
+			AND ss.createTime >= :startTime
+		</#if>
+		<#if endTime?exists && endTime != "">
+			AND ss.createTime <= :endTime
+		</#if>
+		<#if goodsType?exists && goodsType != "">
+			AND ss.goodsType = :goodsType
+		</#if>
+		<#if sourceType?exists && sourceType != "">
+			AND ss.sourceType = :sourceType
+		</#if>
+		<#if clients?exists && clients != "">
+			AND ss.clients = :clients
+		</#if>
+		<#if sourceStatus?exists && sourceStatus != "">
+			<#if sourceStatus == "1">
+				AND ss.sourceStatus IN (1, 2)
+			<#else>
+				AND ss.sourceStatus = :sourceStatus
+			</#if>
+		</#if>
+		<#if isDeleted?exists && isDeleted != "">
+			AND ss.isDeleted = :isDeleted
+		</#if>
+ 	]]> 
+ 	</sql>
+ 	
+ 	<sql id="getById"> 
+ 	<![CDATA[ 
+ 		SELECT
+ 			ss.id,
+ 			ss.memberId,
+ 			ss.sourceType,
+ 			ss.s_provinceId as sProvinceId,
+ 			ss.s_cityId as sCityId,
+ 			ss.s_areaId as sAreaId,
+ 			ss.s_detail as sDetail,
+ 			ss.e_provinceId as eProvinceId,
+ 			ss.e_cityId as eCityId,
+ 			ss.e_areaId as eAreaId,
+ 			ss.e_detail as eDetail,
+ 			ss.s_detailed_address as sDetailedAddress,
+			ss.e_detailed_address as eDetailedAddress,
+ 			ss.sendDate,
+ 			ss.goodsType,
+ 			ss.totalWeight,
+ 			ss.totalSize,
+ 			ss.goodsName,
+ 			ss.carType,
+ 			ss.sendGoodsType,
+ 			ss.carLength,
+ 			ss.freight,
+ 			ss.remark,
+ 			ss.version,
+ 			ss.shipperName as memberName,
+			ss.shipperMobile as memberMobile
+		FROM
+			source_shipper ss
+ 		WHERE
+ 			ss.id = :id
+ 	]]> 
+ 	</sql>
+ 	
+ 	<sql id="updateIsDeleted"> 
+ 	<![CDATA[
+ 		UPDATE
+ 			source_shipper
+ 		SET
+ 			isDeleted = :isDeleted,
+ 			updateUserId = :updateUserId,
+ 			updateTime = SYSDATE()
+ 		WHERE
+ 			id = :id
+ 	]]> 
+ 	</sql>
+ 	
+ 	<sql id="update">
+ 	<![CDATA[
+ 		UPDATE
+ 			source_shipper
+ 		SET
+ 			sourceType = :sourceType,
+ 			sendDate = :sendDateStr,
+ 			goodsType = :goodsType,
+ 			totalWeight = :totalWeight,
+ 			totalSize = :totalSize,
+ 			goodsName = :goodsName,
+ 			carType = :carType,
+ 			sendGoodsType = :sendGoodsType,
+ 			carLength = :carLength,
+ 			freight = :freight,
+ 			remark = :remark,
+ 			shipperName = :shipperName,
+ 			shipperMobile = :shipperMobile,
+ 			updateUserId = :updateUserId,
+ 			updateTime = SYSDATE(),
+ 			version = version + 1
+ 		WHERE
+ 			id = :id AND version = :version
+ 	]]>
+ 	</sql>
+ 	
+ 	<sql id="getNstRule">
+ 	<![CDATA[
+ 		SELECT
+ 			nstRule
+ 		FROM
+ 			source_shipper
+ 		WHERE
+ 			id = :sourceId
+ 	]]>
+ 	</sql>
+</sqlMap>

@@ -1,0 +1,36 @@
+package cn.gdeng.nst.admin.dto.admin;
+
+import cn.gdeng.nst.entity.nst.SourceAssignHisEntity;
+import cn.gdeng.nst.enums.SourceAssignHisStatusEnum;
+
+public class AdminSourceAssignHisDTO extends SourceAssignHisEntity{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 4171304020194558826L;
+	
+	private String assignMemberCompanyName;
+	
+	private String assignMemberMobile;
+
+	public String getAssignMemberCompanyName() {
+		return assignMemberCompanyName;
+	}
+
+	public void setAssignMemberCompanyName(String assignMemberCompanyName) {
+		this.assignMemberCompanyName = assignMemberCompanyName;
+	}
+
+	public String getAssignMemberMobile() {
+		return assignMemberMobile;
+	}
+
+	public void setAssignMemberMobile(String assignMemberMobile) {
+		this.assignMemberMobile = assignMemberMobile;
+	}
+	
+	public String getStatusStr(){
+		return SourceAssignHisStatusEnum.getNameByCode(getStatus());
+	}
+}

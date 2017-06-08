@@ -1,0 +1,30 @@
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<table id="orderdg" title=""></table>
+<script type="text/javascript">
+$(document).ready(function(){
+	var sourceId = $("#sourceId").val();
+	loadOrderData(sourceId);
+});
+function loadOrderData(sourceId){
+	$('#orderdg').datagrid({
+		url:CONTEXT+'sourceShipper/orderList/'+sourceId,
+		height: 'auto', 
+		nowrap:true,
+		rownumbers:true,
+		pagination:false,
+		fitColumns:true,
+		fit:true,
+		columns:[[
+			{field:'orderTypeStr',title:'订单类型',width:100,align:'center'},
+			{field:'orderNo',title:'订单号',width:100,align:'center'},
+			{field:'orderStatusStr',title:'订单状态',width:100,align:'center'},
+			{field:'sellerName',title:'卖家姓名',width:100,align:'center'},
+			{field:'sellerMobile',title:'卖家手机',width:100,align:'center'},
+			{field:'buyerName',title:'买家姓名',width:100,align:'center'},
+			{field:'buyerMobile',title:'买家手机',width:100,align:'center'},
+			{field:'payStatusStr',title:'支付状态',width:100,align:'center'},
+			{field:'payMoney',title:'金额',width:100,align:'center'}
+		]]
+	}); 
+}
+</script>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="OrderInfo">
+
+<!--更新货运订单关闭(平台配送)-->
+	<sql id="updateOrderInfoClose">
+         <![CDATA[
+      		UPDATE order_info
+					SET `orderStatus` = 3,
+						`closeReason` = 1,
+						updateTime=SYSDATE()
+			WHERE
+				sourceId =:sourceId
+         ]]>
+	</sql>
+	
+</sqlMap>

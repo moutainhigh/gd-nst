@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="MemberLineApi">    
+    
+    
+  <sql id="queryPage">
+    select 
+        l.id, 
+        l.s_detail  startArea,
+        l.e_detail  endArea,
+        l.memberId
+       from member_line l  
+       where 
+       l.isDeleted=0
+       and
+       l.memberId=:memberId
+        order by l.createTime  desc  
+      LIMIT :startRow,:endRow 
+</sql>  
+
+
+ <sql id="getTotal">
+    select  
+         count(1)
+       from member_line l  
+       where
+       l.isDeleted=0
+       and
+       l.memberId=:memberId
+</sql>  
+
+
+ <sql id="getLineTotal">
+   	<![CDATA[ 
+   	select  
+         count(1)
+       from member_line l  
+       where
+       l.isDeleted=0
+       and
+       l.memberId=:memberId
+       <#if s_provinceId?exists && s_provinceId!="" >
+			AND l.s_provinceId=:s_provinceId
+		</#if>
+		<#if s_cityId?exists && s_cityId!="" >
+			AND l.s_cityId=:s_cityId
+		</#if>
+		<#if s_areaId?exists && s_areaId!="" >
+			AND l.s_areaId=:s_areaId
+		</#if>
+		<#if e_provinceId?exists && e_provinceId!="" >
+			AND l.e_provinceId=:e_provinceId
+		</#if>
+		<#if e_cityId?exists && e_cityId!="" >
+			AND l.e_cityId=:e_cityId
+		</#if>
+		<#if e_areaId?exists && e_areaId!="" >
+			AND l.e_areaId=:e_areaId
+		</#if>	
+		]]>
+       
+</sql>  
+
+   <sql id="deleteMemberLineById">
+    update member_line
+    set isDeleted=1
+    where id=:id and memberId=:memberId
+	</sql>
+
+
+</sqlMap>

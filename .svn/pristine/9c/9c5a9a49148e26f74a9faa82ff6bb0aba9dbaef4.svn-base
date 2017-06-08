@@ -1,0 +1,639 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="SourceShipper">
+		
+	<!-- 货主分页查询我发布的货源(我发布的货源包括已发布和分配中的) -->
+	<sql id="queryMyPublishedByPageForShipper">
+		<![CDATA[
+			SELECT 
+				id, s_detail, s_detailed_address, e_detail, e_detailed_address, createTime,
+				sendDate, memberId, (ISNULL(assignMemberId) AND nstRule != 3) as isCanDispose, version, 
+				CASE 
+					WHEN nstRule = 3 THEN '分配中' 
+					WHEN sourceStatus = 1 THEN '已发布' 
+				END as goodsStatusName
+			FROM 
+				source_shipper 
+			WHERE 
+				isDeleted = 0 
+				AND sourceStatus = 1 
+				AND nstRule != 2
+				AND memberId=:memberId
+			ORDER BY createTime DESC
+			LIMIT :startRow,:endRow
+		]]>
+	</sql>
+	
+	<!-- 货主统计我发布的货源 -->
+	<sql id="countMyPublishedForShipper">
+		<![CDATA[
+			SELECT count(id) FROM  source_shipper WHERE  
+				isDeleted = 0 
+				AND sourceStatus = 1
+				AND nstRule != 2
+				AND memberId=:memberId
+		]]>
+	</sql>
+	
+	
+	<!-- 货主分页查询我已过期的货源 -->
+	<sql id="queryMyOverdueByPageForShipper">
+		<![CDATA[
+			SELECT 
+				id, s_detail, s_detailed_address, e_detail, e_detailed_address, createTime,
+				sendDate, memberId, ISNULL(assignMemberId) as isCanDispose, version,
+				'已过期' as goodsStatusName 
+			FROM 
+				source_shipper 
+			WHERE 
+				isDeleted = 0 
+				AND sourceStatus = 4
+				AND memberId=:memberId
+			ORDER BY createTime DESC
+			LIMIT :startRow,:endRow
+		]]>
+	</sql>
+	
+	<!-- 货主统计我已过期的货源 -->
+	<sql id="countMyOverdueForShipper">
+		<![CDATA[
+			SELECT count(id) FROM  source_shipper WHERE  
+				isDeleted = 0 
+				AND sourceStatus = 4
+				AND memberId=:memberId
+		]]>
+	</sql>
+	
+	
+	<!-- 货主分页查询我待确认的货源。待确认有两种：1是直发的货有司机接单，2是分配给了物流公司并且该公司已接受，并且当前货源状态为已发布和司机接单-->
+	<sql id="queryMyUnconfirmedByPageForShipper">
+		<![CDATA[
+			SELECT ss.id, ss.s_detail, ss.s_detailed_address, ss.e_detail, ss.e_detailed_address,
+				ss.sendDate, ss.memberId, mi.mobile as driverMobile,
+				ob.createTime as driverAcceptDate,  mi2.mobile as assignMemberMobile,
+				'待确认' as goodsStatusName, ISNULL(assignMemberId) as isCanDispose, version, 
+				ob.id as orderBeforeId, now() as currentDate, ss.createTime
+ 			FROM 
+ 				source_shipper ss 
+ 			LEFT JOIN 
+ 				 order_before ob ON ss.id = ob.sourceId 
+					AND ss.memberId = ob.shipperMemberId 
+					AND ob.shipper_isDeleted = 0 AND ob.sourceStatus = 1
+			LEFT JOIN 
+				member_info mi ON ob.driverMemberId = mi.id
+			LEFT JOIN 
+				member_info mi2 ON ss.assignMemberId = mi2.id
+			WHERE
+				ss.memberId = :memberId AND	ss.isDeleted = 0 AND (
+					ss.sourceStatus = 2
+						OR 
+					(nstRule = 2 AND ss.assignMemberId IS NOT NULL AND ss.sourceStatus IN (1,2))
+				)
+			ORDER BY ss.createTime DESC
+			LIMIT :startRow,:endRow
+		]]>
+	</sql>
+	
+	<!-- 货主统计我待确认的货源 -->
+	<sql id="countMyUnconfirmedForShipper">
+		<![CDATA[
+			SELECT count(*) FROM 
+ 				source_shipper ss 
+ 			LEFT JOIN 
+ 				 order_before ob ON ss.id = ob.sourceId 
+					AND ss.memberId = ob.shipperMemberId 
+					AND ob.shipper_isDeleted = 0 AND ob.sourceStatus = 1
+			LEFT JOIN 
+				member_info mi ON ob.driverMemberId = mi.id
+			LEFT JOIN 
+				member_info mi2 ON ss.assignMemberId = mi2.id
+			WHERE
+				ss.memberId = :memberId AND	ss.isDeleted = 0 AND (
+					ss.sourceStatus = 2
+						OR 
+					(nstRule = 2 AND ss.assignMemberId IS NOT NULL AND ss.sourceStatus IN (1,2))
+				)
+		]]>
+	</sql>
+	
+	
+	<!-- 货主分页查询我全部的货源(注意，全部货源不包括“已接受”的) -->
+	<sql id="queryMyAllByPageForShipper">
+		<![CDATA[
+			SELECT ss.id, ss.s_detail, ss.s_detailed_address, ss.e_detail, ss.e_detailed_address,
+				ss.sendDate, ss.memberId, mi.mobile as driverMobile, now() as currentDate, ss.createTime
+				ob.createTime as driverAcceptDate,  mi2.mobile as assignMemberMobile,
+				(ISNULL(ss.assignMemberId) AND ss.nstRule != 3) as isCanDispose, version, ob.id as orderBeforeId,
+				CASE 
+					WHEN ss.nstRule =3 AND ss.sourceStatus = 1 THEN '分配中' 
+					WHEN (ss.nstRule =2 AND ss.sourceStatus IN (1,2)) OR (ss.sourceStatus = 2) THEN '待确认'
+					WHEN ss.sourceStatus = 1 THEN '已发布' 
+					WHEN ss.sourceStatus = 4 THEN '已过期'
+				END as goodsStatusName,
+				CASE 
+					WHEN ss.nstRule =3 AND ss.sourceStatus = 1 THEN 1 
+					WHEN (ss.nstRule =2 AND ss.sourceStatus IN (1,2)) OR (ss.sourceStatus = 2) THEN 2
+					WHEN ss.sourceStatus = 1 THEN 3
+					WHEN ss.sourceStatus = 4 THEN 5
+				END as goodsStatusCode
+ 			FROM 
+ 				source_shipper ss 
+ 			LEFT JOIN 
+ 				order_before ob ON ss.sourceStatus = 2 AND
+ 				ss.id = ob.sourceId AND ss.memberId = ob.shipperMemberId
+ 				AND ob.shipper_isDeleted = 0 AND ob.sourceStatus = 1
+			LEFT JOIN 
+				member_info mi ON ob.driverMemberId = mi.id
+			LEFT JOIN 
+				member_info mi2 ON ss.assignMemberId = mi2.id
+			WHERE
+				ss.memberId = :memberId AND ss.isDeleted = 0 AND ss.sourceStatus != 3 
+				
+			ORDER BY ss.createTime DESC
+			LIMIT :startRow,:endRow
+		]]>
+	</sql>
+	
+	<!-- 货主统计我全部的货源(注意，全部货源不包括“已接受”的) -->
+	<sql id="countMyAllForShipper">
+		<![CDATA[
+			SELECT count(*)
+ 			FROM 
+ 				source_shipper ss
+			WHERE
+				ss.memberId = :memberId AND ss.isDeleted = 0 AND ss.sourceStatus != 3 
+		]]>
+	</sql>
+	
+	<!--通过id安全删除-->
+	<sql id="deleteSafelyById">
+		<![CDATA[
+			UPDATE  source_shipper
+ 			SET isDeleted = 1 , version = version + 1, updateTime = now(), updateUserId =:updateUserId
+			WHERE
+				id = :id AND version = :version AND assignMemberId IS NULL AND isDeleted = 0
+		]]>
+	</sql>
+	
+	<!-- 根据货源id更新版本号 -->
+	<sql id="updateVersionById">
+		<![CDATA[
+			UPDATE
+ 				source_shipper 
+			set 
+				version = version + 1
+			WHERE 
+				id = :id AND version = :version
+		]]>
+	</sql>
+	
+	<!-- 货主查看货源详情 -->
+	<sql id="queryGoodsDetailForShipper">
+		<![CDATA[
+			 SELECT ss.id, ss.s_detail, ss.s_detailed_address, ss.e_detail, ss.e_detailed_address,
+					ss.assignMemberId, ss.sendDate, ss.memberId, ss.remark, ss.mileage, ss.sourceType, 
+					ss.goodsType, ss.totalWeight, ss.totalSize, ss.goodsName, ss.carType, ss.carLength, 
+					ss.sendGoodsType, ss.freight, ss.shipperName, ss.createTime, mi.mobile as driverMobile, 
+					ob.createTime as driverAcceptDate , mi.iconUrl as driverIconUrl, mi.userName as driverName,
+					IF(mi.cerPersonalStatus = 2 OR mi.cerCompanyStatus = 2,1,0) as driverAuth, mc.carNumber as driverCarNumber,
+					mc.carType as driverCarType, mc.load as driverLoad, mc.carLength as driverCarLength,
+					mi2.mobile as assignMemberMobile,  mi2.iconUrl as assignMemberIconUrl, mi2.userName as assignMemberName,
+					IF(mi2.cerPersonalStatus = 2 OR mi2.cerCompanyStatus = 2,1,0) as assignMemberAuth, now() as currentDate,
+					(ISNULL(ss.assignMemberId) AND ss.nstRule != 3) as isCanDispose, version, ob.id as orderBeforeId,
+				CASE 
+					WHEN ss.sourceStatus = 4 THEN '信息已过期' 
+					WHEN ss.nstRule = 2 AND ISNULL(mi.id) THEN '物流公司已承接待指派车主' 
+					WHEN ISNULL(mi.id) THEN '暂无司机接单'
+					WHEN !ISNULL(mi.id) THEN '司机已接单'
+				END as goodsAcceptOrderName,
+				CASE 
+					WHEN ss.nstRule =3 AND ss.sourceStatus = 1 THEN '分配中' 
+					WHEN (ss.nstRule =2 AND ss.sourceStatus IN (1,2)) OR (ss.sourceStatus = 2) THEN '待确认'
+					WHEN ss.sourceStatus = 1 THEN '已发布' 
+					WHEN ss.sourceStatus = 3 THEN '已接受' 
+					WHEN ss.sourceStatus = 4 THEN '已过期' 
+				END as goodsStatusName,
+				CASE 
+					WHEN ss.nstRule =3 AND ss.sourceStatus = 1 THEN 1 
+					WHEN ss.nstRule =2 OR ss.sourceStatus = 2 THEN 2
+					WHEN ss.sourceStatus = 1 THEN 3
+					WHEN ss.sourceStatus = 3 THEN 4
+					WHEN ss.sourceStatus = 4 THEN 5
+				END as goodsStatusCode
+				
+			 FROM source_shipper ss 
+			
+			 LEFT JOIN order_before ob ON 
+						ss.id = ob.sourceId and ss.memberId = ob.shipperMemberId
+						and ob.shipper_isDeleted=0 and ob.sourceStatus=1
+			
+			 LEFT JOIN member_info mi ON ob.driverMemberId = mi.id
+			
+			 LEFT JOIN member_car mc ON ob.carId = mc.id
+			 
+			 LEFT JOIN member_info mi2 ON ss.assignMemberId = mi2.id
+			 
+			WHERE
+				 ss.id=:id AND ss.isDeleted=0 
+		]]>
+	</sql>
+	
+	
+	<!-- 物流公司分页查询自己发布的货源 -->
+	<sql id="queryMyGoodsByPageForLogistics">
+		<![CDATA[
+			SELECT 
+				id, s_detail, s_detailed_address, e_detail, e_detailed_address,
+				sendDate, memberId, version, createTime,
+				CASE 
+					WHEN sourceStatus = 1 THEN '已发布' 
+					WHEN sourceStatus = 2 THEN '待确认' 
+					WHEN sourceStatus = 3 THEN '已接受' 
+					WHEN sourceStatus = 4 THEN '已过期' 
+				END as goodsStatusName
+			FROM 
+				source_shipper 
+			WHERE 
+				isDeleted = 0 
+				AND memberId=:memberId
+				<#if (sourceStatusList?exists) && (sourceStatusList?size > 0) >
+					<#assign listSize = sourceStatusList?size />
+					AND sourceStatus IN (
+						<#list sourceStatusList as theSourceStatus>
+							<#if theSourceStatus_index != listSize-1>
+									${theSourceStatus} ,
+								<#else>
+									${theSourceStatus}
+							</#if>
+						</#list>
+					)
+
+				</#if>
+			ORDER BY createTime DESC
+			LIMIT :startRow,:endRow
+		]]>
+	</sql>
+	
+	<!-- 统计物流公司自己发布的货源 -->
+	<sql id="countMyGoodsByPageForLogistics">
+		<![CDATA[
+			SELECT 
+				count(id)
+			FROM 
+				source_shipper 
+			WHERE 
+				isDeleted = 0 
+				AND memberId=:memberId
+				<#if (sourceStatusList?exists) && (sourceStatusList?size > 0) >
+					<#assign listSize = sourceStatusList?size />
+					AND sourceStatus IN (
+						<#list sourceStatusList as theSourceStatus>
+							<#if theSourceStatus_index != listSize-1>
+									${theSourceStatus} ,
+								<#else>
+									${theSourceStatus}
+							</#if>
+						</#list>
+					)
+
+				</#if>
+		]]>
+	</sql>
+	
+	
+	<!-- 物流公司查看自己发布的货源详情 -->
+	<sql id="queryMyGoodsDetailForLogistics">
+		<![CDATA[
+			 SELECT ss.id, ss.s_detail, ss.s_detailed_address, ss.e_detail, ss.e_detailed_address,
+					ss.sendDate, ss.memberId, ss.remark, ss.mileage, ss.sourceType,
+					ss.goodsType, ss.totalWeight, ss.totalSize, ss.goodsName, ss.carType, ss.carLength, 
+					ss.sendGoodsType, ss.freight, version, createTime,
+				CASE 
+					WHEN ss.sourceStatus = 1 THEN '暂无司机接单' 
+					WHEN ss.sourceStatus = 2 THEN '司机已接单' 
+					WHEN ss.sourceStatus = 3 THEN '司机已接单' 
+					WHEN ss.sourceStatus = 4 THEN '信息已过期' 
+				END as goodsAcceptOrderName,
+				CASE 
+					WHEN ss.sourceStatus = 1 THEN '已发布' 
+					WHEN ss.sourceStatus = 2 THEN '待确认' 
+					WHEN ss.sourceStatus = 3 THEN '已接受' 
+					WHEN ss.sourceStatus = 4 THEN '已过期' 
+				END as goodsStatusName
+				
+			 FROM source_shipper ss
+			 
+			WHERE
+				 ss.id=:id AND ss.isDeleted=0 
+		]]>
+	</sql>
+	
+	<!-- 根据id更新创建时间。ps：如有需要，会同时更新货源状态。 -->
+	<sql id="updateCreateTimeById">
+		<![CDATA[
+			UPDATE source_shipper 
+			SET 
+				version = version + 1, createTime = :createTime, 
+				updateTime = now(), updateUserId =:updateUserId
+				<#if sourceStatus?exists && sourceStatus != "">
+					,sourceStatus= :sourceStatus
+				</#if>
+			WHERE id = :id AND version = :version AND isDeleted = 0
+		]]>
+	</sql>
+	
+	<!-- 根据id更新装货时间，同时更改创建时间 。ps：如有需要，会同时更新货源状态。-->
+	<sql id="updateSendDateById">
+		<![CDATA[
+			UPDATE source_shipper 
+			SET 
+				version = version + 1, sendDate = :sendDate, createTime = :createTime,
+				updateTime = now(), updateUserId =:updateUserId
+				<#if sourceStatus?exists && sourceStatus != "">
+					,sourceStatus= :sourceStatus
+				</#if>
+			WHERE id = :id AND version = :version AND isDeleted = 0
+		]]>
+	</sql>
+	
+	<!-- 根据货源id更新货源规则（直发/代发） -->
+	<sql id="updateNstRuleById">
+		<![CDATA[
+			UPDATE source_shipper 
+			SET 
+				version = version + 1, nstRule = :nstRule,
+				updateTime = now(), updateUserId =:updateUserId
+				<#if platform?exists && platform != "">
+					,platform= :platform
+				</#if>
+				<#if sourceStatus?exists && sourceStatus != "">
+					,sourceStatus= :sourceStatus
+				</#if>
+			WHERE id = :sourceShipperId AND version = :version AND isDeleted = 0
+		]]>
+	</sql>
+	
+	<!-- 查询已过期但是未更新货源状态的id（即货源已过期但是状态不是已过期标识）。5天的秒值为432000。ps:只有已发布的货源才会过期。 -->
+	<sql id="queryIdOverdueButNotUpdateStatus">
+		<![CDATA[
+			SELECT id FROM source_shipper ss WHERE 
+				ss.sourceStatus = 1 and
+			   UNIX_TIMESTAMP(now()) - UNIX_TIMESTAMP(ss.createTime) >= 432000
+		]]>
+	</sql>
+
+	
+
+	<!-- 根据id批量更新为过期状态。ps:只有已发布的货源才会过期。 -->
+	<sql id="updateOverdueStatusByIds">
+		<![CDATA[
+			UPDATE source_shipper SET sourceStatus = 4, updateTime = now(), updateUserId=:updateUserId
+				WHERE sourceStatus = 1 
+				<#assign listSize = ids?size />
+				AND id IN (
+					<#list ids as theId>
+						<#if theId_index != listSize-1>
+								${theId} ,
+							<#else>
+								${theId}
+						</#if>
+					</#list>
+				)
+		]]>
+	</sql>
+
+	<!-- 货源分配-根据ID查询货源 -->
+	<sql id="queryByIdForAssign">
+		<![CDATA[
+			SELECT
+				A.id,
+				A.memberId,
+				A.sourceType,
+				A.nstRule,
+				A.version,
+				A.assignMemberId,
+				A.assignCount,
+				A.s_provinceId as sProvinceId,
+				A.s_cityId as sCityId,
+				A.s_areaId as sAreaId,
+				A.e_provinceId as eProvinceId,
+				A.e_cityId as eCityId,
+				A.e_areaId as eAreaId,
+				
+				(
+					SELECT
+						B.memberIdLogistic
+					FROM
+						rule_logistic_assign B
+						LEFT JOIN rule_onoff C ON B.memberIdLogistic = C.memberId
+						LEFT JOIN rule_logistic D ON B.memberIdLogistic = D.memberId
+					WHERE
+						B.memberIdShipper = A.memberId
+					AND D.startTime <= NOW()
+					AND D.endTime >= NOW() 
+					AND B.isDeleted = 0
+					AND C.onOff=2
+					LIMIT 1
+				) AS memberIdLogistic
+			FROM
+				source_shipper A
+			WHERE
+				id =:id
+		]]>
+	</sql>
+	
+	<!-- 货源分配-货源直接分配给指定物流公司-->
+	<sql id="assignToLogistics">
+		<![CDATA[
+			UPDATE source_shipper A
+			SET A.assignMemberId = :memberId,
+			 A.version = A.version + 1,
+			 A.assignCount = A.assignCount+1,
+			 A.updateTime = NOW()
+			WHERE
+				A.id =:sourceId
+			AND A.isDeleted = 0
+			AND A.version=:version
+		]]>
+	</sql>
+	
+	<!-- 货源分配-按分配规则派给指定物流公司-->
+	<sql id="ruleToLogistics">
+		<![CDATA[
+			UPDATE source_shipper A
+			SET A.assignMemberId = :memberId,
+			 A.version = A.version + 1,
+			 A.assignCount = A.assignCount+1,
+			 A.updateTime = NOW()
+			WHERE
+				A.id =:sourceId
+			AND A.isDeleted = 0
+			AND A.version=:version
+		]]>
+	</sql>
+	
+	<!-- 货源分配-直发-->
+	<sql id="assignToDriver">
+		<![CDATA[
+			UPDATE source_shipper A
+			SET A.assignMemberId = null,
+			 A.nstRule = 1,
+			 A.sourceStatus = 1,
+			 A.version = A.version + 1,
+			 A.updateTime = NOW()
+			WHERE
+				A.id =:id
+			AND A.isDeleted = 0
+			AND A.version=:version
+		]]>
+	</sql>
+	
+	<!-- 货源分配-获取有效规则物流公司-->
+	<sql id="assignRuleLogisticsLst">
+		<![CDATA[
+			SELECT
+				A.id,
+				A.memberId
+			FROM
+				rule_logistic A
+			LEFT JOIN rule_info B ON A.ruleInfoId = B.id
+			LEFT JOIN rule_onoff C ON A.memberId = C.memberId
+			WHERE
+				A.startTime <= NOW()
+			AND A.endTime >= NOW()
+			AND (
+				(B.dayLimt >0 AND B.totalLimt> 0 AND A.dayCount < B.dayLimt AND A.totalCount < B.totalLimt)
+				OR
+				(B.dayLimt >0 AND B.totalLimt =0 AND A.dayCount < B.dayLimt)
+				OR
+				(B.dayLimt =0 AND B.totalLimt >0 AND A.totalCount < B.totalLimt)
+			)
+			AND B.sourceType =:sourceType
+			AND C.onOff=2
+			AND A.isDeleted = 0
+			AND B.isDeleted = 0
+			AND C.isDeleted = 0
+			AND A.memberId NOT IN (
+						SELECT
+							assignMemberId
+						FROM
+							source_assign_his D
+						WHERE
+							D.sourceId =:id
+					)
+		]]>
+	</sql>
+	
+	<!-- 货源分配-线路订阅会员筛选-->
+	<sql id="assignRuleLogistics">
+		<![CDATA[
+			SELECT
+				C.id,
+				A.memberId
+			FROM
+				rule_line A LEFT JOIN member_count B ON A.memberId = B.memberId
+				LEFT JOIN rule_logistic C ON  A.memberId = C.memberId
+			WHERE A.lineType =:lineType
+				AND C.startTime <= NOW()
+				AND C.endTime >= NOW()
+				AND (
+						<#if sAreaId?exists>
+							A.s_cityId =:sCityId 
+							AND A.s_areaId =:sAreaId
+						<#else>
+							A.s_cityId =:sCityId 
+						</#if>
+				 	)
+				 AND (
+						<#if eAreaId?exists>
+							A.e_cityId =:eCityId
+							AND A.e_areaId =:eAreaId
+						<#else>
+							A.e_cityId =:eCityId
+						</#if>
+				 	)
+				AND A.isDeleted = 0
+				AND C.isDeleted = 0
+				<#assign listSize = rlDtoLst?size />
+					AND A.memberId IN (
+						<#list rlDtoLst as dto>
+							<#if dto_index != listSize-1>
+									${dto.memberId} ,
+								<#else>
+									${dto.memberId}
+							</#if>
+						</#list>
+					)
+				ORDER BY C.level DESC,B.confirmSourceCount DESC,B.regTime ASC
+			LIMIT 1
+		]]>
+	</sql>
+	<!-- 货源分配-按照城市筛选-->
+	<sql id="assignRuleLogisticsCity">
+		<![CDATA[
+			SELECT
+				C.id,
+				A.memberId
+			FROM
+				rule_line A LEFT JOIN member_count B ON A.memberId = B.memberId
+				LEFT JOIN rule_logistic C ON  A.memberId = C.memberId
+			WHERE A.lineType =:lineType
+				 AND C.startTime <= NOW()
+				 AND C.endTime >= NOW()
+				 AND A.s_cityId =:sCityId 
+				 AND A.e_cityId =:eCityId
+				 AND A.isDeleted = 0
+				 AND C.isDeleted = 0
+				<#assign listSize = rlDtoLst?size />
+					AND A.memberId IN (
+						<#list rlDtoLst as dto>
+							<#if dto_index != listSize-1>
+									${dto.memberId} ,
+								<#else>
+									${dto.memberId}
+							</#if>
+						</#list>
+					)
+				ORDER BY C.level DESC,B.confirmSourceCount DESC,B.regTime ASC
+			LIMIT 1
+		]]>
+	</sql>
+	
+	<!-- 货源分配-累加物流公司货源分配总数-->
+	<sql id="addRuleLogistics">
+		<![CDATA[
+			UPDATE rule_logistic A
+			SET A.dayCount = if(a.currentDay is null OR currentDay != CURDATE(),1,A.dayCount+1),
+			 A.totalCount = A.totalCount + 1,
+			 A.currentDay=CURDATE(),
+			 A.updateUserId=0,
+			 A.updateTime = NOW()
+			WHERE
+				A.id =:ruleLogisticsId
+		]]>
+	</sql>
+	
+	<!-- 查询司机下的车辆-->
+	<sql id="querydriverCar">
+		<![CDATA[
+			select id,memberId  from member_car c where c.memberId=:driverMemberId order by c.createTime desc
+		]]>
+	</sql>
+	<!-- 查询物流公司绑定的司机-->
+	<sql id="queryMemberLogisticDriverCar">
+		<![CDATA[
+			SELECT count(id)  from member_logistic_driver mld where mld.logisticMemberId=:updateUserId
+		]]>
+	</sql>
+	
+	<sql id="getNstOrderNo">                 
+ 	<![CDATA[
+		SELECT nextval('nst_order')
+ 	]]>
+ 	</sql>
+	<!-- 根据货源ID  查询省会-->
+	<sql id="querySourceProvinceById">
+		<![CDATA[
+			select id,s_provinceId as sProvinceId,e_provinceId as eProvinceId from source_shipper ss WHERE id=:id
+		]]>
+	</sql>
+</sqlMap>

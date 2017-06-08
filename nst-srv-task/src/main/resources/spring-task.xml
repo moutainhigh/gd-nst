@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+   	    http://www.springframework.org/schema/context  
+   		http://www.springframework.org/schema/context/spring-context.xsd"
+	   default-lazy-init="false">
+	   
+  <!-- 7天未操作确认收货的运单 自动确认收货  -->
+  <bean id="orderConfirmHandleTaskImpl" class="cn.gdeng.nst.server.order.quartz.OrderConfirmHandleTaskImpl" />  
+   
+   <bean id="orderConfirmHandleDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">  
+    <property name="targetObject" ref="orderConfirmHandleTaskImpl" />  
+    <property name="targetMethod" value="execute" />  
+    <property name="concurrent" value="false" />  
+  </bean>
+   
+  <bean id="orderConfirmHandleTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">  
+  <property name="jobDetail" ref="orderConfirmHandleDetail" />  
+     <property name="cronExpression">  
+     <!-- 每天的0点、9点、13点、18点、21点都执行一次执行任务调度 -->  
+      <value>0 0 0,9,13,18,21 * * ?</value>  
+    </property>  
+  </bean> 
+  
+  
+   <!-- 支付预付款3天过期 。-->
+  <bean id="prePaymentOverdueTask" class="cn.gdeng.nst.server.order.quartz.PrePaymentOverdueTask" />  
+   
+   <bean id="prePaymentOverdueTaskDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">  
+    <property name="targetObject" ref="prePaymentOverdueTask" />  
+    <property name="targetMethod" value="execute" />  
+    <property name="concurrent" value="false" />  
+  </bean>
+   
+  <bean id="prePaymentOverdueTaskTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">  
+  	<property name="jobDetail" ref="prePaymentOverdueTaskDetail" />  
+     <property name="cronExpression">  
+    	<!--  每小时执行一次执行任务调度   -->
+      <value>0 0 0/1 * * ?</value>
+     <!-- <value>0 0/5 * * * ?</value> -->
+    </property>  
+  </bean> 
+  
+  
+   <!-- 5天货源自动过期 -->
+   <bean id="goodsOverdueTask" class="cn.gdeng.nst.server.source.quartz.GoodsOverdueTask" />  
+   
+   <bean id="goodsOverdueTaskDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">  
+    <property name="targetObject" ref="goodsOverdueTask" />  
+    <property name="targetMethod" value="execute" />  
+    <property name="concurrent" value="false" />  
+  </bean>
+   
+  <bean id="goodsOverdueTaskTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">  
+  	<property name="jobDetail" ref="goodsOverdueTaskDetail" />  
+     <property name="cronExpression">  
+     <!-- 每小时执行一次执行任务调度 -->  
+       <value>0 0 0/1 * * ?</value>
+    </property>  
+  </bean> 
+  
+  <!-- 每天凌晨重置物流公司当天已分配货源数  -->
+  <bean id="ruleLogisticTask" class="cn.gdeng.nst.server.source.quartz.RuleLogisticTask" />  
+   
+   <bean id="ruleLogisticTaskDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">  
+    <property name="targetObject" ref="ruleLogisticTask" />  
+    <property name="targetMethod" value="execute" />  
+    <property name="concurrent" value="false" />  
+  </bean>
+   
+  <bean id="ruleLogisticTaskTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">  
+  <property name="jobDetail" ref="ruleLogisticTaskDetail" />  
+     <property name="cronExpression">  
+     <!-- 每天的0点执行一次执行任务调度 -->  
+      <value>0 0 0 * * ?</value>  
+    </property>  
+  </bean> 
+  
+  
+     <!-- 车主3天验货超时 -->
+   <bean id="driverExamineCargoTimeOutTask" class="cn.gdeng.nst.server.order.quartz.DriverExamineCargoTimeOutTask" />  
+   
+   <bean id="driverExamineCargoTimeOutTaskDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">  
+    <property name="targetObject" ref="driverExamineCargoTimeOutTask" />  
+    <property name="targetMethod" value="execute" />  
+    <property name="concurrent" value="false" />  
+  </bean>
+   
+  <bean id="driverExamineCargoTimeOutTaskTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">  
+  	<property name="jobDetail" ref="driverExamineCargoTimeOutTaskDetail" />  
+     <property name="cronExpression">  
+     <!-- 每小时执行一次执行任务调度 -->  
+      <value>0 0 0/1 * * ?</value>
+    <!--  <value>0 0/5 * * * ?</value> -->
+    </property>  
+  </bean> 
+  
+	<!--  广告自动上架定时任务 -->
+	<bean id="adPutOnTask" class="cn.gdeng.nst.server.advertisement.quartz.AdPutOnTask"/>
+	<bean id="adPutOnTaskDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">  
+	    <property name="targetObject" ref="adPutOnTask" />  
+	    <property name="targetMethod" value="execute" />  
+	    <property name="concurrent" value="false" />  
+  	</bean>
+  	<bean id="adPutOnTaskTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">  
+  		<property name="jobDetail" ref="adPutOnTaskDetail" />  
+     	<property name="cronExpression">  
+     		<!-- 每5分钟执行一次执行任务调度 -->  
+      		<value>0 0/5 * * * ?</value>
+    	</property>  
+    </bean> 
+  
+  <!-- Quartz的调度工厂，调度工厂只能有一个，多个调度任务在list中添加 -->  
+  <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">  
+    <property name="triggers">  
+      <list>  
+         <!-- 所有的调度列表-->  
+       <!--  <ref bean="orderHandleTimeOutTrigger" />   -->
+		<ref bean="prePaymentOverdueTaskTrigger" />
+        <ref bean="orderConfirmHandleTrigger" />  
+        <ref bean="goodsOverdueTaskTrigger" />
+        <ref bean="ruleLogisticTaskTrigger" />
+        <ref bean="driverExamineCargoTimeOutTaskTrigger" />
+         <ref bean="adPutOnTaskTrigger" />
+      </list>  
+    </property>  
+  </bean>
+  
+  <!-- 获取task执行权限，解决多服务器同时执行问题 -->
+  <bean id="zookeeperAspect" class="cn.gdeng.nst.util.server.zookeeper.ZookeeperAspect">
+  	<property name="PROJECT_NAME" value="${maven.project.env}-task"/>
+  	<property name="ZOOKEEPER_HOSTS" value="${redis.zkAddr}"/>
+  </bean>  
+
+</beans>

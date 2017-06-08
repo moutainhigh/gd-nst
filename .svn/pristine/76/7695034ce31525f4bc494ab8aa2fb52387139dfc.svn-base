@@ -1,0 +1,647 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="FindCarLine">
+	<sql id="insert">
+ 	<![CDATA[
+	    INSERT INTO find_car_line 
+	    (memberId,s_provinceId,s_cityId,s_areaId,s_detail,
+	    e_provinceId,e_cityId,e_areaId,e_detail,isSelect,
+	    createUserId,createTime,updateUserId,updateTime,isDeleted)
+	    VALUES(:memberId,:s_provinceId,:s_cityId,:s_areaId,:s_detail,
+	    :e_provinceId,:e_cityId,:e_areaId,:e_detail,:isSelect,
+	    :createUserId,SYSDATE(),:updateUserId,SYSDATE(),:isDeleted); 
+	]]>
+	</sql>
+	<!--更新默认选择 -->
+	<sql id="updateIsSelect">
+ 	<![CDATA[
+	    update find_car_line set
+	    updateTime=SYSDATE(),
+	    updateUserId=:memberId,
+	     <#if isSelect?exists && isSelect!="" >
+	    	 isSelect=:isSelect
+	    	 <#else>
+	    	 	isSelect=0
+	     </#if>
+	     where memberId=:memberId and isDeleted=0
+	     <#if id?exists && id!="" >
+	      and id=:id
+	     </#if>
+	]]>
+	</sql>
+
+	<!-- 删除 -->
+	<sql id="delectLine">
+ 	<![CDATA[
+	    update find_car_line set
+	    updateTime=SYSDATE(),
+	     isDeleted=1
+	     where id=:id and memberId=:memberId
+	]]>
+	</sql>
+	<!-- 根据属性查询 -->
+	<sql id="queryFindCarLineById">
+ 	<![CDATA[
+	    SELECT id, 
+	    memberId,
+	    s_provinceId,
+	    s_cityId,
+	    s_areaId,
+	    s_detail,
+	    e_provinceId,
+	    e_cityId,
+	    e_areaId,
+	    e_detail,
+	    isSelect,
+	    createUserId,
+	    createTime,
+	    updateUserId,
+	    updateTime
+	    FROM find_car_line AS t
+	    WHERE isDeleted=0  AND t.id=:id  
+	]]>
+	</sql>
+
+	<!-- 根据属性查询  添加的找车线路-->
+	<sql id="queryByProperty">
+ 	<![CDATA[
+	    SELECT id, 
+	    memberId,
+	    s_provinceId,
+	    s_cityId,
+	    s_areaId,
+	    s_detail,
+	    e_provinceId,
+	    e_cityId,
+	    e_areaId,
+	    e_detail,
+	    isSelect,
+	    createUserId,
+	    createTime,
+	    updateUserId,
+	    updateTime
+	    FROM find_car_line AS t
+	    WHERE isDeleted=0  
+	    <#if id?exists && id!="" >
+	       AND t.id=:id  
+	    </#if>
+	    <#if memberId?exists && memberId!="" >
+	       AND t.memberId=:memberId  
+	    </#if>
+	    <#if s_provinceId?exists && s_provinceId!="" >
+			AND t.s_provinceId =:s_provinceId
+		</#if>
+	     <#if s_cityId?exists && s_cityId!="" >
+			AND t.s_cityId =:s_cityId
+		</#if>
+		 <#if s_areaId?exists && s_areaId!="" >
+			AND t.s_areaId =:s_areaId
+		</#if>
+		 <#if s_detail?exists && s_detail!="" >
+			AND t.s_detail =:s_detail
+		</#if>
+		 <#if e_provinceId?exists && e_provinceId!="" >
+			AND t.e_provinceId =:e_provinceId
+		</#if>
+		 <#if e_cityId?exists && e_cityId!="" >
+			AND t.e_cityId =:e_cityId
+		</#if>
+		 <#if e_areaId?exists && e_areaId!="" >
+			AND t.e_areaId =:e_areaId
+		</#if>
+		 <#if e_detail?exists && e_detail!="" >
+			AND t.e_detail =:e_detail
+		</#if>
+		
+	]]>
+	</sql>
+
+	<!-- 根据会员ID  查询找车线路 -->
+	<sql id="queryByMemberId">
+ 	<![CDATA[
+ 		 SELECT id, 
+	    memberId,
+	    s_provinceId,
+	    s_cityId,
+	    s_areaId,
+	    s_detail,
+	    e_provinceId,
+	    e_cityId,
+	    e_areaId,
+	    e_detail,
+	    isSelect,
+	    createUserId,
+	    createTime,
+	    updateUserId,
+	    updateTime
+	    FROM find_car_line AS t
+	    WHERE isDeleted=0   
+	    AND t.memberId=:memberId 
+ 		]]>
+	</sql>
+	<!-- 物流公司找车   分页查询车主 -->
+	<sql id="queryCarByLine">
+ 	<![CDATA[
+	SELECT mc.memberId,mc.createTime,
+	mc.mobile,mc.userName,
+	mc.cerPersonalStatus,mc.cerCompanyStatus,
+	mc.iconUrl ,mo.driverOrderCount AS orderQuantity
+	FROM (
+		SELECT l.id,l.memberId,l.createTime,
+		mi.mobile,mi.userName,mi.cerPersonalStatus,
+		mi.cerCompanyStatus,mi.iconUrl 
+		FROM (
+			SELECT ml.id,ml.memberId,ml.createTime 
+			FROM member_line AS ml 
+			 WHERE  ml.isDeleted=0 
+		 <#if e_areaId?exists && e_areaId!="" >
+			  and ml.e_areaId=:e_areaId  
+			  </#if>
+		 <#if e_cityId?exists && e_cityId!="" >
+			  and ml.e_cityId=:e_cityId 
+			  </#if>
+		 <#if e_provinceId?exists && e_provinceId!="" >
+			  and ml.e_provinceId=:e_provinceId  
+			  </#if>
+		 <#if s_areaId?exists && s_areaId!="" >
+			  and ml.s_areaId=:s_areaId 
+			  </#if>
+		 <#if s_cityId?exists && s_cityId!="" > 
+			  and ml.s_cityId=:s_cityId 
+			  </#if>
+		 <#if s_provinceId?exists && s_provinceId!="" >
+			  and ml.s_provinceId=:s_provinceId
+			</#if>
+ 				GROUP BY ml.memberId 
+ 				) AS l 
+ 				LEFT JOIN member_info AS mi ON l.memberId= mi.id WHERE mi.status=1 
+ 				) mc
+  	LEFT JOIN member_count mo  ON mc.memberId=mo.memberId 
+     ORDER BY mo.driverOrderCount DESC,mc.createTime ASC
+     <#if startRow?exists && startRow!="" && endRow?exists && endRow!="">
+			LIMIT :startRow,:endRow 
+		</#if> 
+			]]>
+	</sql>
+
+
+	<!-- 物流公司找车  统计分页查询总数 -->
+	<sql id="countQueryCarByLine">
+ 	<![CDATA[
+	SELECT count(mc.memberId)
+	FROM (
+		SELECT l.id,l.memberId,l.createTime,
+		mi.mobile,mi.userName,mi.cerPersonalStatus,
+		mi.cerCompanyStatus,mi.iconUrl 
+		FROM (
+			SELECT ml.id,ml.memberId,ml.createTime 
+			FROM member_line AS ml 
+			 WHERE  ml.isDeleted=0 
+		 <#if e_areaId?exists && e_areaId!="" >
+			  and ml.e_areaId=:e_areaId  
+			  </#if>
+		 <#if e_cityId?exists && e_cityId!="" >
+			  and ml.e_cityId=:e_cityId 
+			  </#if>
+		 <#if e_provinceId?exists && e_provinceId!="" >
+			  and ml.e_provinceId=:e_provinceId  
+			  </#if>
+		 <#if s_areaId?exists && s_areaId!="" >
+			  and ml.s_areaId=:s_areaId 
+			  </#if>
+		 <#if s_cityId?exists && s_cityId!="" > 
+			  and ml.s_cityId=:s_cityId 
+			  </#if>
+		 <#if s_provinceId?exists && s_provinceId!="" >
+			  and ml.s_provinceId=:s_provinceId
+			</#if>
+ 				GROUP BY ml.memberId 
+ 				) AS l 
+ 				LEFT JOIN member_info AS mi ON l.memberId= mi.id WHERE mi.status=1
+ 				) mc
+  	LEFT JOIN member_count mo  ON mc.memberId=mo.memberId    
+  
+			]]>
+	</sql>
+
+	<!-- 查询车主 常跑线路 -->
+	<sql id="queryCarLine">
+ 	<![CDATA[
+	 	SELECT 
+	 	ml.id,
+	 	ml.s_areaId,
+	 	ml.s_cityId,
+	 	ml.s_provinceId,
+	 	ml.s_detail,
+	    ml.e_areaId,
+	    ml.e_cityId, 
+	    ml.e_provinceId, 
+	    ml.e_detail
+		FROM member_line  AS ml 
+		WHERE  ml.isDeleted=0 
+		AND ml.memberId=:memberId
+ 			]]>
+	</sql>
+
+
+
+	<!-- 查询车主所有车辆 -->
+	<sql id="queryCar">
+ 	<![CDATA[
+		SELECT mc.id,
+		mc.memberId,
+		mc.carNumber,
+		mc.carType,
+		mc.load,
+		mc.carLength  
+		FROM  member_car mc 
+		WHERE mc.memberId=:memberId AND  mc.isDeleted=0 
+		
+		]]>
+	</sql>
+
+	<!-- 查询车主信息 -->
+	<sql id="queryCarDriver">
+ 	<![CDATA[
+ 		SELECT mi.id,
+ 		mi.mobile,
+ 		mi.userName,
+ 		mi.cerPersonalStatus,
+		mi.cerCompanyStatus,
+		mi.iconUrl,
+		mo.driverOrderCount AS orderQuantity
+		 FROM
+				(SELECT mi.id,mi.mobile,mi.userName,mi.cerPersonalStatus,
+						mi.cerCompanyStatus,mi.iconUrl  
+				FROM  member_info AS mi WHERE mi.status=1
+				AND mi.id=:memberId
+				 ) AS mi 
+		LEFT JOIN 
+				member_count mo 
+		 ON mi.id=mo.memberId 
+	]]>
+	</sql>
+
+	<!-- 查询车主 业务类型 -->
+	<sql id="queryMemberById">
+ 	<![CDATA[
+		SELECT 
+		m.id,
+		m.mobile,
+		m.serviceType,
+		m.userName,
+		m.cerPersonalStatus,
+		m.cerCompanyStatus
+		FROM  member_info m
+		WHERE m.status=1
+		AND m.id=:memberId
+		]]>
+	</sql>
+
+
+	<!-- 根据常跑路线查询推荐货源 -->
+	<sql id="queryRecommendGoods">
+ 	<![CDATA[
+		 SELECT 
+			 s.id as sourceId,
+			 s.sourceType,
+			 s.s_areaId,
+			 s.s_cityId,
+			 s.s_provinceId,
+			 s.s_detail,
+			 s.e_areaId,
+			s.e_cityId,
+			s.e_provinceId,
+			s.e_detail,
+			s.sendDate,
+			s.goodsName,
+			s.totalWeight,
+			s.totalSize,
+			s.carLength,
+			s.mileage,
+			s.carType,
+			s.sendGoodsType,
+			s.goodsType,
+			s.nstRule,
+			s.memberId,
+			(CASE s.nstRule WHEN 2 THEN  m.userName ELSE s.shipperName  END ) as  userName,
+			(CASE s.nstRule WHEN 2 THEN  m.mobile ELSE  s.shipperMobile END ) as  mobile,
+			m.iconUrl,
+			m.serviceType,
+			m.cerCompanyStatus,
+			m.cerPersonalStatus,
+			s.createTime
+		
+		FROM(
+ 			SELECT 
+				s.id,s.sourceType,s.s_areaId,s.s_cityId,s.s_provinceId,s.s_detail,s.e_areaId,
+				s.e_cityId,s.e_provinceId,s.e_detail,s.sendDate,s.goodsName,s.totalWeight,s.totalSize,
+				s.carLength,s.mileage,s.carType,s.sendGoodsType,s.goodsType,s.nstRule,s.shipperMobile,s.shipperName,
+				(CASE s.nstRule WHEN 1 THEN s.memberId  WHEN 4 THEN s.memberId WHEN 2 THEN s.assignMemberId ELSE 0 END ) 
+				AS memberId,s.createTime 
+				FROM source_shipper s 
+				WHERE 
+				 s.createTime>str_to_date(:startTime,'%Y-%m-%d %T')
+				 and
+				s.isDeleted=0 AND s.sourceStatus=1 AND s.nstRule in (1,2,4)
+				<#if sourceType?exists && sourceType!="" > 
+							  and s.sourceType=:sourceType 
+				</#if>
+				<#if (cityList?exists) && (cityList?size > 0) >
+				 and 
+				<#assign listSize = cityList?size />
+					<#list cityList as theCityList>
+							<#if theCityList_index != listSize-1>
+							(
+							<#assign sonlistSize = theCityList?size />
+								       <#list theCityList as sonCityList>
+											<#if sonCityList_index != sonlistSize-1>
+											 		${sonCityList} and
+												<#else>
+												     ${sonCityList} 
+											</#if>
+										</#list>
+							    ) or 
+								<#else>
+								(	
+								<#assign sonlistSize = theCityList?size />
+								       <#list theCityList as sonCityList>
+											<#if sonCityList_index != sonlistSize-1>
+											 		${sonCityList} and
+												<#else>
+												     ${sonCityList} 
+											</#if>
+										</#list>
+								)   
+							</#if>
+						</#list>
+				</#if>
+				 ) s 
+				  
+				 
+		LEFT JOIN member_info m 
+		ON m.id=s.memberId  WHERE m.STATUS=1  ORDER BY s.createTime DESC,s.id DESC
+		<#if startRow?exists && startRow!="" && endRow?exists && endRow!="">
+			LIMIT :startRow,:endRow 
+		</#if> 
+		]]>
+	</sql>
+	
+	<!-- 根据常跑路线查询推荐货源 -->
+	<sql id="countRecommendGoods">
+ 	<![CDATA[
+		 SELECT 
+			  count(s.id) 
+		FROM(
+ 			SELECT 
+				s.id,s.sourceType,s.s_areaId,s.s_cityId,s.s_provinceId,s.s_detail,s.e_areaId,
+				s.e_cityId,s.e_provinceId,s.e_detail,s.sendDate,s.goodsName,s.totalWeight,s.totalSize,
+				s.carLength,s.mileage,s.nstRule,
+				(CASE s.nstRule WHEN 1 THEN s.memberId WHEN 4 THEN s.memberId WHEN 2 THEN s.assignMemberId ELSE 0 END ) 
+				AS memberId,s.createTime 
+				FROM source_shipper s 
+				WHERE
+				 s.createTime>str_to_date(:startTime,'%Y-%m-%d %T')
+				 and
+				 s.isDeleted=0 AND s.sourceStatus=1 AND s.nstRule in (1,2,4)
+				<#if sourceType?exists && sourceType!="" > 
+							  and s.sourceType=:sourceType 
+				</#if>
+				
+				<#if (cityList?exists) && (cityList?size > 0) >
+				 and 
+				<#assign listSize = cityList?size />
+					<#list cityList as theCityList>
+							<#if theCityList_index != listSize-1>
+							(
+									<#assign sonlistSize = theCityList?size />
+								       <#list theCityList as sonCityList>
+											<#if sonCityList_index != sonlistSize-1>
+											 		${sonCityList} and
+												<#else>
+												     ${sonCityList} 
+											</#if>
+										</#list>
+							    )  or 
+								<#else>
+								(
+									<#assign sonlistSize = theCityList?size />
+								       <#list theCityList as sonCityList>
+											<#if sonCityList_index != sonlistSize-1>
+											 		${sonCityList} and
+												<#else>
+												     ${sonCityList} 
+											</#if>
+										</#list>
+								)   
+							</#if>
+						</#list>
+				</#if>
+				
+				 ) s 
+		LEFT JOIN member_info m 
+		ON m.id=s.memberId  WHERE m.STATUS=1 
+		
+		]]>
+	</sql>
+	<!-- 车主找货模块    根据条件查询货源 -->
+	<sql id="queryGoodsPage">
+ 	<![CDATA[
+		 SELECT 
+			 s.id as sourceId,
+			 s.sourceType,
+			 s.s_areaId,
+			 s.s_cityId,
+			 s.s_provinceId,
+			 s.s_detail,
+			 s.e_areaId,
+			s.e_cityId,
+			s.e_provinceId,
+			s.e_detail,
+			s.sendDate,
+			s.goodsName,
+			s.totalWeight,
+			s.totalSize,
+			s.carLength,
+			s.mileage,
+			s.carType,
+			s.sendGoodsType,
+			s.goodsType,
+			s.nstRule,
+			s.goodsMemberId as memberId,
+			m.serviceType,
+			m.iconUrl,
+			(CASE s.nstRule WHEN 2 THEN  m.userName ELSE s.shipperName  END ) as  userName,
+			(CASE s.nstRule WHEN 2 THEN  m.mobile ELSE  s.shipperMobile END ) as  mobile,
+			m.cerCompanyStatus,
+			m.cerPersonalStatus,
+			s.createTime 
+		
+		FROM(
+ 			SELECT 
+				s.id,s.sourceType,s.s_areaId,s.s_cityId,s.s_provinceId,s.s_detail,s.e_areaId,
+				s.e_cityId,s.e_provinceId,s.e_detail,s.sendDate,s.goodsName,s.totalWeight,s.totalSize,
+				s.carLength,s.mileage,s.carType,s.sendGoodsType,s.goodsType,s.nstRule,s.shipperName,s.shipperMobile,
+				(CASE s.nstRule WHEN 1 THEN s.memberId WHEN 4 THEN s.memberId WHEN 2 THEN s.assignMemberId ELSE 0 END ) 
+				AS goodsMemberId,s.createTime 
+				FROM source_shipper s 
+				WHERE 
+				  s.createTime>str_to_date(:startTime,'%Y-%m-%d %T')
+				 and s.isDeleted=0 AND s.sourceStatus=1 AND s.nstRule in (1,2,4) and s.platform=0
+				<#if sourceType?exists && sourceType!="" > 
+							  and s.sourceType=:sourceType 
+				</#if>
+			     <#if s_provinceId?exists && s_provinceId!="" >
+					  and  s.s_provinceId=:s_provinceId
+				 </#if>
+				 <#if s_cityId?exists && s_cityId!="" > 
+					  and s.s_cityId=:s_cityId 
+				</#if>
+				<#if s_areaId?exists && s_areaId!="" >
+					  and s.s_areaId=:s_areaId 
+				</#if>
+			    <#if e_areaId?exists && e_areaId!="" >
+	  				 and s.e_areaId=:e_areaId  
+	 			</#if>
+				<#if e_cityId?exists && e_cityId!="" >
+					  and s.e_cityId=:e_cityId 
+				</#if>
+				<#if e_provinceId?exists && e_provinceId!="" >
+					  and s.e_provinceId=:e_provinceId  
+				</#if>
+				<#if carType?exists && carType!="" >
+					  and ( s.carType=:carType or  s.carType=-1 )
+				</#if>
+				<#if carLength?exists && carLength!="" >
+					  and ( s.carLength=:carLength or s.carLength=-1 )
+				</#if>
+	  
+				) s 
+		LEFT JOIN member_info m 
+		ON m.id=s.goodsMemberId  
+	
+		 ORDER BY s.createTime DESC,s.id DESC
+		<#if startRow?exists && startRow!="" && endRow?exists && endRow!="">
+			LIMIT :startRow,:endRow 
+		</#if> 
+		]]>
+	</sql>
+
+	<!-- 车主找货模块  统计条件查询货源 -->
+	<sql id="countGoodsPage">
+ 	<![CDATA[
+		 SELECT 
+			count(s.id)
+		FROM(
+ 			SELECT 
+				s.id,s.sourceType,s.s_areaId,s.s_cityId,s.s_provinceId,s.s_detail,s.e_areaId,
+				s.e_cityId,s.e_provinceId,s.e_detail,s.sendDate,s.goodsName,s.totalWeight,s.totalSize,
+				s.carLength,s.mileage,s.nstRule,
+				(CASE s.nstRule WHEN 1 THEN s.memberId WHEN 4 THEN s.memberId WHEN 2 THEN s.assignMemberId ELSE 0 END ) 
+				AS goodsMemberId,s.createTime 
+				FROM source_shipper s 
+				WHERE 
+				  s.createTime>str_to_date(:startTime,'%Y-%m-%d %T')
+				and s.isDeleted=0 AND s.sourceStatus=1 AND s.nstRule in (1,2,4) and s.platform=0
+				<#if sourceType?exists && sourceType!="" > 
+							  and s.sourceType=:sourceType 
+				</#if>
+			     <#if s_provinceId?exists && s_provinceId!="" >
+					  and  s.s_provinceId=:s_provinceId
+				 </#if>
+				 <#if s_cityId?exists && s_cityId!="" > 
+					  and s.s_cityId=:s_cityId 
+				</#if>
+				<#if s_areaId?exists && s_areaId!="" >
+					  and s.s_areaId=:s_areaId 
+				</#if>
+			    <#if e_areaId?exists && e_areaId!="" >
+	  				 and s.e_areaId=:e_areaId  
+	 			</#if>
+				<#if e_cityId?exists && e_cityId!="" >
+					  and s.e_cityId=:e_cityId 
+				</#if>
+				<#if e_provinceId?exists && e_provinceId!="" >
+					  and s.e_provinceId=:e_provinceId  
+				</#if>
+				<#if carType?exists && carType!="" >
+					  and ( s.carType=:carType or  s.carType=-1 )
+				</#if>
+				<#if carLength?exists && carLength!="" >
+					  and ( s.carLength=:carLength or s.carLength=-1 )
+				</#if>
+	  
+				 ) s 
+		LEFT JOIN member_info m 
+		ON m.id=s.goodsMemberId 
+		
+		]]>
+	</sql>
+
+	
+	<!-- 车主查找货源-查询货源详情 -->
+	<sql id="queryGoodsDetailByIdAndStatus">
+		<![CDATA[
+ 	SELECT 
+		 s.id AS sourceId,
+		 s.s_detail,
+		 s.s_detailed_address,
+		s.e_detail,
+		s.e_detailed_address,
+		s.sendDate,
+		s.goodsName,
+		s.totalWeight,
+		s.totalSize,
+		s.carLength,
+		s.sourceType,
+		s.mileage,
+		s.carType,
+		s.sendGoodsType,
+		s.goodsType,
+		s.nstRule,	
+		s.remark,
+		s.freight,
+		s.sourceStatus,
+		s.createTime,
+		m.id AS memberId,
+		(CASE s.nstRule WHEN 2 THEN  m.userName ELSE s.shipperName  END ) as  userName,
+		(CASE s.nstRule WHEN 2 THEN  m.mobile ELSE  s.shipperMobile END ) as  mobile,
+		m.iconUrl,
+		m.cerPersonalStatus,
+		(CASE s.nstRule WHEN 2 THEN '物流公司推荐'  ELSE NULL END )  AS goodsSource
+  	FROM(
+			 SELECT 
+			 s.id,
+			 s.s_detail,
+			 s.s_detailed_address,
+			s.e_detail,
+			s.e_detailed_address,
+			s.sendDate,
+			s.goodsName,
+			s.totalWeight,
+			s.totalSize,
+			s.carLength,
+			s.sourceType,
+			s.mileage,
+			s.carType,
+			s.sendGoodsType,
+			s.goodsType,
+			s.nstRule,
+			s.remark,
+			s.freight,
+			s.sourceStatus,
+			s.shipperName,
+			s.shipperMobile,
+			s.createTime,
+			(CASE s.nstRule WHEN 1 THEN s.memberId WHEN 4 THEN s.memberId WHEN 2 THEN s.assignMemberId ELSE 0 END )AS memberId
+			FROM source_shipper s 
+			WHERE s.isDeleted=0   and id=:sourceId and s.platform=0
+		
+ 			AND s.nstRule IN (1,2,4) 
+	 	) s 
+		LEFT JOIN member_info m ON m.id=s.memberId     ORDER BY s.id
+		]]>
+	</sql>
+	
+	
+
+</sqlMap>

@@ -1,0 +1,27 @@
+package cn.gdeng.nst.admin.server.admin.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import cn.gdeng.nst.admin.dto.admin.AdminSourceAssignHisDTO;
+import cn.gdeng.nst.admin.service.admin.SourceAssignHisService;
+import cn.gdeng.nst.dao.BaseDao;
+import cn.gdeng.nst.util.web.api.ApiResult;
+
+import com.alibaba.dubbo.config.annotation.Service;
+
+@Service
+public class SourceAssignHisServiceImpl implements SourceAssignHisService{
+	
+	@Autowired
+	private BaseDao<?> baseDao;
+	
+	@Override
+	public ApiResult<List<AdminSourceAssignHisDTO>> queryList(Map<String, Object> paramMap) {
+		List<AdminSourceAssignHisDTO> list = baseDao.queryForList("SourceAssignHis.queryList", paramMap, AdminSourceAssignHisDTO.class);
+		return new ApiResult<List<AdminSourceAssignHisDTO>>().setResult(list);
+	}
+
+}

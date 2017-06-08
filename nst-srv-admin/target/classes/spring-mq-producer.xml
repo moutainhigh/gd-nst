@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    
+    <!--APP消息推送生产者-->
+    <bean id="msgPushProducer" class="com.aliyun.openservices.ons.api.bean.ProducerBean" init-method="start" destroy-method="shutdown">
+        <property name="properties" >
+            <props>
+                <prop key="ProducerId">PID_dev_nst_msg_push</prop> 
+                <prop key="AccessKey">FmQ1FZSfeGcLxl13</prop>
+                <prop key="SecretKey">t3QfuZjugirBJraeD8TIz1G5cpTfUY</prop>
+                <prop key="Topic">dev_nst_msg_push</prop>
+            </props>
+        </property>
+    </bean>
+    
+</beans>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/context  
+    http://www.springframework.org/schema/context/spring-context.xsd">
+           
+        <bean id="sourceShipperListener" class="cn.gdeng.nst.server.source.impl.SourceShipperListener"></bean> <!--Listener配置-->
+        <bean id="sourceShipperConsumer" class="com.aliyun.openservices.ons.api.bean.ConsumerBean" init-method="start" destroy-method="shutdown">
+            <property name="properties" > <!--消费者配置信息-->
+                <props>
+                    <prop key="ConsumerId">${maven.mq.SourceShipper.ConsumerId}</prop> <!--请替换XXX-->
+                    <prop key="AccessKey">${maven.mq.AccessKey}</prop>
+                    <prop key="SecretKey">${maven.mq.SecretKey}</prop>
+                    <!--将消费者线程数固定为50个-->
+                    <prop key="ConsumeThreadNums">1</prop>
+                </props>
+            </property>
+            <property name="subscriptionTable">
+                <map>
+                    <entry value-ref="sourceShipperListener">
+                        <key>
+                            <bean class="com.aliyun.openservices.ons.api.bean.Subscription">
+                                <property name="topic" value="${maven.mq.SourceShipper.Topic}"/>
+                                <property name="expression" value="*"/>
+                            </bean>
+                        </key>
+                    </entry>
+                    <!--更多的订阅添加entry节点即可-->
+                </map>
+            </property>
+        </bean>
+    </beans>

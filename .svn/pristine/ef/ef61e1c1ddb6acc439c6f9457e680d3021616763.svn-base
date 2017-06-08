@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="RuleLine">
+
+	<sql id="queryByConditionPage">
+		<![CDATA[
+		SELECT
+			rl.id,
+			rl.memberId,
+			rl.s_provinceId,
+			rl.s_cityId,
+			rl.s_areaId,
+			rl.e_provinceId,
+			rl.e_cityId,
+			rl.e_areaId,
+			rl.lineType,
+			rl.createTime,
+			rl.s_detail,
+			rl.e_detail,
+			rl.isDeleted,
+		    mc.companyName AS publisher,
+			mi.mobile AS phone
+		FROM
+			rule_line rl
+		LEFT JOIN member_info mi ON rl.memberId = mi.id
+		LEFT JOIN member_cer mc on mc.memberId=rl.memberId and mc.userType=2
+		WHERE
+			1 = 1
+		<#if createTime?exists && createTime!="" >
+			AND rl.createTime>=:createTime
+		</#if>
+		<#if isDeleted?exists && isDeleted!="" >
+			AND rl.isDeleted=:isDeleted
+		</#if>
+		<#if sProvinceId?exists && sProvinceId!="" >
+			AND rl.s_provinceId=:sProvinceId
+		</#if>
+		<#if sCityId?exists && sCityId!="" >
+			AND rl.s_cityId=:sCityId
+		</#if>
+		<#if sAreaId?exists && sAreaId!="" >
+			AND rl.s_areaId=:sAreaId
+		</#if>
+		<#if eProvinceId?exists && eProvinceId!="" >
+			AND rl.e_provinceId=:eProvinceId
+		</#if>
+		<#if eCityId?exists && eCityId!="" >
+			AND rl.e_cityId=:eCityId
+		</#if>
+		<#if eAreaId?exists && eAreaId!="" >
+			AND rl.e_areaId=:eAreaId
+		</#if>
+		<#if phone?exists && phone!="" >
+			AND mi.mobile like "%":phone"%"
+		</#if>
+		<#if publisher?exists && publisher!="" >
+			AND mc.companyName like "%":publisher"%"
+		</#if>
+		<#if lineType?exists && lineType!="" >
+			AND rl.lineType=:lineType
+		</#if>
+	    <#if memberId?exists && memberId!="" >
+			AND rl.memberId=:memberId
+		</#if>
+		order by  rl.createTime desc
+		LIMIT :startRow,:endRow
+		]]>
+	</sql>
+
+	<sql id="queryByConditionPageCount">
+		<![CDATA[
+		SELECT
+			count(1)
+		FROM
+			rule_line rl
+		LEFT JOIN member_info mi ON rl.memberId = mi.id
+		LEFT JOIN member_cer mc on mc.memberId=rl.memberId and mc.userType=2
+		WHERE
+			1 = 1
+		<#if createTime?exists && createTime!="" >
+			AND rl.createTime>=:createTime
+		</#if>
+		<#if isDeleted?exists && isDeleted!="" >
+			AND rl.isDeleted=:isDeleted
+		</#if>
+		<#if sProvinceId?exists && sProvinceId!="" >
+			AND rl.s_provinceId=:sProvinceId
+		</#if>
+		<#if sCityId?exists && sCityId!="" >
+			AND rl.s_cityId=:sCityId
+		</#if>
+		<#if sAreaId?exists && sAreaId!="" >
+			AND rl.s_areaId=:sAreaId
+		</#if>
+		<#if eProvinceId?exists && eProvinceId!="" >
+			AND rl.e_provinceId=:eProvinceId
+		</#if>
+		<#if eCityId?exists && eCityId!="" >
+			AND rl.e_cityId=:eCityId
+		</#if>
+		<#if eAreaId?exists && eAreaId!="" >
+			AND rl.e_areaId=:eAreaId
+		</#if>
+		<#if phone?exists && phone!="" >
+			AND mi.mobile like "%":phone"%"
+		</#if>
+		<#if publisher?exists && publisher!="" >
+			AND mc.companyName like "%":publisher"%"
+		</#if>
+		<#if lineType?exists && lineType!="" >
+			AND rl.lineType=:lineType
+		</#if>
+	    <#if memberId?exists && memberId!="" >
+			AND rl.memberId=:memberId
+		</#if>
+		]]>
+	</sql>
+	
+</sqlMap>

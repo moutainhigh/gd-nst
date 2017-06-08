@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="OrderAgent">
+<sql id="insert">
+<![CDATA[
+	INSERT INTO order_agent(
+			orderNo,
+			orderBeforeId,
+			sourceId,
+			logisticMemberId,
+			driverMemberId,
+			confirmTime,
+			orderStatus,
+			createUserId,
+			createTime
+		) VALUES (
+			:orderNo,
+			:orderBeforeId,
+			:sourceId,
+			:logisticMemberId,
+			:driverMemberId,
+			now(),
+			:orderStatus,
+			:createUserId,
+			now()
+		)
+]]>
+</sql>
+
+<sql id="getNstOrderNo">                 
+ 	<![CDATA[
+		SELECT nextval('order_agent')
+ 	]]>
+ 	</sql>
+ 	
+<!-- 更新信息订单状态 -->
+<sql id="update">
+<![CDATA[
+	update  order_agent set
+	        orderStatus=:orderStatus,
+	        <#if logisticTime?exists && logisticTime!="" >
+			 	logisticTime=:logisticTime,
+			</#if>
+			  <#if updateUserId?exists && updateUserId!="" >
+			 	updateUserId=:updateUserId,
+			</#if>
+			 <#if payStatus?exists && payStatus!="" >
+			 	payStatus=:payStatus,
+			</#if>
+	        updateTime=now()
+	      where sourceId=:sourceId and orderBeforeId=:orderBeforeId
+	        
+]]>
+</sql>
+
+
+<sql id="queryByConditionPage">
+<![CDATA[
+	SELECT
+		A.id AS id,
+		A.sourceId AS sourceId,
+		D.orderNo AS orderAgentNo,
+		I.orderNo AS orderInfoNo,
+		A.driverMemberId AS driverMemberId,
+		A.shipperMemberId AS shipperMemberId,
+		B.assignMemberId AS logisticMemberId,
+		D.orderStatus AS orderStatus,
+		IF(B.platform=0,CASE D.orderStatus WHEN 1 THEN '待确认' WHEN 2 THEN '已确认' ELSE '已关闭' END ,
+ 	 	CASE 
+		 	WHEN I.orderStatus=1 AND I.prePayStatus=0 THEN '待确认' 
+   			WHEN I.orderStatus=1 AND I.prePayStatus=1 THEN '已确认' 
+			WHEN I.orderStatus=2 THEN '已完成' 
+			WHEN I.orderStatus=3 THEN '已关闭' 
+		END
+		) as orderStatusStr,  /**  平台配送 状态设置*/
+		B.createTime AS createTime,/**货源发布时间	*/
+		B.assignMemberId AS assignMemberId,
+		B.nstRule AS nstRule,
+		B.s_detail AS s_detail,
+		B.e_detail AS e_detail,
+		B.s_detailed_address AS s_detailed_address,
+		B.e_detailed_address AS e_detailed_address,
+		B.platform as platform,
+		A.driverMobile AS driverMobile,/**司机电话 */
+		A.shipperMobile AS mobile, /**货主电话  */
+		now() as currentDate
+	FROM
+		order_before A
+	LEFT JOIN source_shipper B ON A.sourceId = B.id 
+	LEFT JOIN order_agent D ON (A.sourceId = D.sourceId AND D.orderBeforeId=A.id )
+    LEFT JOIN order_info I ON (I.sourceId=A.sourceId AND I.orderBeforeId=A.id)
+	WHERE
+		1 = 1
+	AND (
+		B.assignMemberId =:logisticMemberId
+		OR B.memberId =:logisticMemberId
+	)
+	<#if orderStatus?exists && orderStatus!="" >
+		<#if  orderStatus==4 >
+			AND (A.sourceStatus in (4,5,6) OR  I.orderStatus=3)    /**已关闭	*/
+		<#elseif orderStatus==1>
+		   AND IF(B.platform=0,A.sourceStatus=:orderStatus,I.prePayStatus=0 AND I.orderStatus=1) /**平台配送 待确认  */
+		<#elseif orderStatus==2>
+		   AND IF(B.platform=0,A.sourceStatus=:orderStatus,I.prePayStatus=1 AND I.orderStatus=1)/**平台配送 已确认  */
+		<#elseif orderStatus==3>
+		   AND IF(B.platform=0,A.sourceStatus=:orderStatus,I.orderStatus=2 )/**平台配送 已完成  */  
+		</#if>
+	</#if>
+	
+	<#if nstRule?exists && nstRule==1 >
+		AND B.nstRule in(1,4)
+	<#elseif nstRule?exists && nstRule==2>
+	 AND IF(B.platform=0,B.nstRule=2,B.nstRule in (2,5,6,7) )/**分配规则  */  
+	</#if>
+	ORDER BY
+		A.createTime DESC
+	LIMIT :startRow ,:endRow							
+]]>
+</sql>
+
+<sql id="getTotal">
+<![CDATA[
+	SELECT
+		count(A.id)
+	FROM
+		order_before A
+	LEFT JOIN source_shipper B ON A.sourceId = B.id 
+	LEFT JOIN order_agent D ON A.sourceId = D.sourceId AND D.orderBeforeId=A.id 
+	LEFT JOIN order_info I ON (I.sourceId=A.sourceId AND I.orderBeforeId=A.id)
+	WHERE
+		1 = 1
+	AND (
+		B.assignMemberId =:logisticMemberId
+		OR B.memberId =:logisticMemberId
+	)
+	<#if orderStatus?exists && orderStatus!="" >
+		<#if  orderStatus==4 >
+			AND (A.sourceStatus in (4,5,6) OR  I.orderStatus=3)    /**已关闭	*/
+		<#elseif orderStatus==1>
+		    AND IF(B.platform=0,A.sourceStatus=:orderStatus,I.prePayStatus=0 AND I.orderStatus=1) /**平台配送  待确认  */
+		<#elseif orderStatus==2>
+		    AND IF(B.platform=0,A.sourceStatus=:orderStatus,I.prePayStatus=1 AND I.orderStatus=1)/**平台配送 已确认  */
+		<#elseif orderStatus==3>
+		    AND IF(B.platform=0,A.sourceStatus=:orderStatus,I.orderStatus=2 )/**平台配送 已完成  */  
+		</#if>
+	</#if>
+	<#if nstRule?exists && nstRule==1 >
+		AND B.nstRule in(1,4)
+	<#elseif nstRule?exists && nstRule==2>
+		 AND IF(B.platform=0,B.nstRule=2,B.nstRule in (2,5,6,7) )/**分配规则  */  
+	</#if>
+]]>
+</sql>
+
+
+<sql id="queryOrderAgentById">
+<![CDATA[
+	SELECT
+		A.id AS id,
+		A.sourceId AS sourceId,
+		B.s_detail AS s_detail,
+		B.s_detailed_address AS s_detailed_address,
+		B.e_detail AS e_detail,
+		B.e_detailed_address AS e_detailed_address,
+		B.mileage AS mileage,
+		B.createTime AS createTime,/**货源发布时间	*/
+		B.sendDate AS sendDate,
+		B.carLength AS carLength,
+		B.carType AS carType,
+		B.goodsType as goodsTypeId,
+		B.sendGoodsType AS sendGoodsType,
+		B.goodsName AS goodsName,
+		B.totalWeight AS totalWeight,
+		B.totalSize AS totalSize,
+		B.remark AS remark,
+		B.freight AS freight,
+		B.nstRule AS nstRule,
+		B.sourceType as sourceType,
+		B.platform AS platform,
+		F.carNumber AS driverCarNumber,
+		F.carType AS driverCarType,
+		F.`load` AS driverCarLoad,
+		F.carLength AS driverCarLength,
+		G.userName  AS driverRealName,
+		E.cerStatus AS driverCerStatus,
+		A.driverMobile AS driverMobile,
+		G.iconUrl AS driverIconUrl,
+		E.companyName AS companyName,
+		C.orderNo AS orderInfoNo,
+		H.orderStatus AS orderAgentStatus,
+		IF(B.platform=0,A.sourceStatus ,
+ 	 	CASE 
+		 	WHEN C.orderStatus=1 AND C.prePayStatus=0 THEN '待确认' 
+   		    WHEN C.orderStatus=1 AND C.prePayStatus=1  THEN '已确认' 
+			WHEN C.orderStatus=2 THEN '已完成' 
+			WHEN C.orderStatus=3 THEN '已关闭' 
+		END
+		) as orderStatusStr,  /**  平台配送 货源订单状态设置   */
+		A.sourceStatus AS orderStatus,
+		H.confirmTime AS agentConfirmTime,
+		H.logisticTime AS agentLogisticTime,
+		H.orderNo AS orderAgentNo,
+		D.payMoney AS payMoney,
+		D.payStatus AS payStatus,
+		D.payTime AS payTime,
+		D.platformPayWater AS platformPayWater,
+		D.payName AS payName,
+		(select userName from member_info I where I.id= B.memberId )as shipperName,
+		B.shipperMobile,
+		(select J.cerStatus from member_cer J where J.memberId = A.shipperMemberId limit 1) as shipperCerStatus,
+		(select I.iconUrl from member_info I where I.id=A.shipperMemberId limit 1) as shipperIconUrl, now() as currentDate,
+		C.transStatus,
+    CASE 
+         WHEN B.platform=0 AND B.nstRule=2 THEN '司机接单'    /**非6+1 代发		*/
+		 WHEN B.platform=0 AND B.nstRule=4 THEN '平台分配,司机接单'  /**非6+1 直发		*/
+         WHEN C.orderStatus=1 AND C.prePayStatus=0 THEN '待支付预付款'
+         WHEN C.orderStatus=1 AND C.prePayStatus=1 AND C.transStatus=1 THEN '预付款已支付待司机验货'
+		 WHEN C.orderStatus=1 AND (C.transStatus=2 OR C.transStatus=3) THEN '已发货待付尾款'
+		 WHEN C.orderStatus=2 AND C.transStatus=3 THEN '已支付尾款交易完成'
+         WHEN C.orderStatus=3 AND C.closeReason=1 THEN '农商友取消采购单'/**6+1 已关闭状态展示信息			*/
+		 WHEN C.orderStatus=3 AND C.closeReason=2 THEN '司机验货不合格' 
+	     WHEN C.orderStatus=3 AND C.closeReason=3 THEN '承运司机3天内未验' 
+         WHEN C.orderStatus=3 AND C.closeReason=4 THEN '预付款支付超时' 
+		 WHEN C.orderStatus=3 AND C.closeReason=5 THEN '拒绝收货' 
+     END AS msgSource       
+	FROM
+		order_before A
+	LEFT JOIN source_shipper B ON A.sourceId = B.id
+	LEFT JOIN order_info C ON A.sourceId = C.sourceId AND C.orderBeforeId=A.id
+	LEFT JOIN member_cer E ON (A.driverMemberId = E.memberId AND E.userType=1)
+	LEFT JOIN member_car F ON A.carId = F.id
+	LEFT JOIN member_info G ON A.driverMemberId = G.id
+	LEFT JOIN order_agent H ON A.sourceId = H.sourceId
+	LEFT JOIN order_paydetail D ON (H.orderNo = D.orderNo AND D.orderType = 1)
+	WHERE
+		1 = 1
+	AND A.id =:id 
+	limit 1
+]]>
+</sql>
+	<sql id="getOrderBeforeIdByOrderNo">
+		<![CDATA[
+			SELECT orderBeforeId,logisticMemberId FROM order_agent 
+			WHERE orderNo =:orderNo
+		]]>
+	</sql>  
+</sqlMap>

@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="OrderInfo">
+	<sql id="queryListByPage"> 
+ 	<![CDATA[ 
+        SELECT
+			oi.id,
+			oi.orderNo,
+			ss.sourceType,
+			oi.createTime,
+			oi.orderStatus,
+			oi.payStatus,
+			oi.transportAmt,
+			oi.transStatus,
+			ss.s_detail as sDetail,
+			ss.e_detail as eDetail,
+			ss.s_detailed_address as sDetailedAddress,
+			ss.e_detailed_address as eDetailedAddress,
+			ss.sourceType,
+			ss.goodsType,
+			ss.totalWeight,
+			ss.sendGoodsType,
+			ss.freight,
+			shipper.userName as shipperName,
+			shipper.mobile as shipperMobile,
+		    driver.userName as driverName,
+			driver.mobile as driverMobile
+		FROM
+			order_info oi
+		LEFT JOIN
+			source_shipper ss ON ss.id = oi.sourceId
+		LEFT JOIN
+			member_info driver ON driver.id = oi.driverMemberId 
+		LEFT JOIN
+			member_info shipper ON shipper.id = oi.shipperMemberId	
+		WHERE
+			1 = 1
+		<#if memberId?exists && memberId != "">
+			AND (oi.shipperMemberId = :memberId or oi.driverMemberId = :memberId)
+		</#if>	
+		<#if orderNo?exists && orderNo != "">
+			AND oi.orderNo like "%":orderNo"%"
+		</#if>
+		<#if sProvinceId?exists && sProvinceId != "">
+			AND ss.s_provinceId = :sProvinceId
+		</#if>
+		<#if sCityId?exists && sCityId != "">
+			AND ss.s_cityId = :sCityId
+		</#if>
+		<#if sAreaId?exists && sAreaId != "">
+			AND ss.s_areaId = :sAreaId
+		</#if>
+		<#if eProvinceId?exists && eProvinceId != "">
+			AND ss.e_provinceId = :eProvinceId
+		</#if>
+		<#if eCityId?exists && eCityId != "">
+			AND ss.e_cityId = :eCityId
+		</#if>
+		<#if eAreaId?exists && eAreaId != "">
+			AND ss.e_areaId = :eAreaId
+		</#if>
+		<#if startTime?exists && startTime != "">
+			AND oi.createTime >= :startTime
+		</#if>
+		<#if endTime?exists && endTime != "">
+			AND oi.createTime <= :endTime
+		</#if>
+		<#if shipperName?exists && shipperName != "">
+			AND shipper.userName like "%":shipperName"%"
+		</#if>
+		<#if shipperMobile?exists && shipperMobile != "">
+			AND shipper.mobile like "%":shipperMobile"%"
+		</#if>
+		<#if driverName?exists && driverName != "">
+			AND driver.userName like "%":driverName"%"
+		</#if>
+		<#if driverMobile?exists && driverMobile != "">
+			AND driver.mobile like "%":driverMobile"%"
+		</#if>
+		<#if sourceType?exists && sourceType != "">
+			AND ss.sourceType = :sourceType
+		</#if>
+		<#if orderStatus?exists && orderStatus != "">
+			AND oi.orderStatus = :orderStatus
+		</#if>
+		<#if sendGoodsType?exists && sendGoodsType != "">
+			AND ss.sendGoodsType = :sendGoodsType
+		</#if>
+		<#if goodsType?exists && goodsType != "">
+			AND ss.goodsType = :goodsType
+		</#if>
+		<#if payStatus?exists && payStatus != "">
+			<#if payStatus == "1">
+				AND (oi.payStatus = 1 OR oi.orderStatus = 3)
+			<#else>
+				AND oi.payStatus = :payStatus
+			</#if>
+		</#if>
+		<#if transStatus?exists && transStatus != "">
+			AND oi.transStatus = :transStatus
+		</#if>
+		ORDER BY oi.id DESC
+	    LIMIT :startRow,:endRow    
+ 	]]> 
+ 	</sql>
+ 	
+ 	<sql id="countTotal"> 
+ 	<![CDATA[ 
+        SELECT
+			count(*)
+		FROM
+			order_info oi
+		LEFT JOIN
+			source_shipper ss ON ss.id = oi.sourceId
+		LEFT JOIN
+			member_info driver ON driver.id = oi.driverMemberId
+		LEFT JOIN
+			member_info shipper ON shipper.id = oi.shipperMemberId	
+		WHERE
+			1 = 1
+		<#if memberId?exists && memberId != "">
+			AND (oi.shipperMemberId = :memberId or oi.driverMemberId = :memberId)
+		</#if>
+		<#if orderNo?exists && orderNo != "">
+			AND oi.orderNo like "%":orderNo"%"
+		</#if>
+		<#if sProvinceId?exists && sProvinceId != "">
+			AND ss.s_provinceId = :sProvinceId
+		</#if>
+		<#if sCityId?exists && sCityId != "">
+			AND ss.s_cityId = :sCityId
+		</#if>
+		<#if sAreaId?exists && sAreaId != "">
+			AND ss.s_areaId = :sAreaId
+		</#if>
+		<#if eProvinceId?exists && eProvinceId != "">
+			AND ss.e_provinceId = :eProvinceId
+		</#if>
+		<#if eCityId?exists && eCityId != "">
+			AND ss.e_cityId = :eCityId
+		</#if>
+		<#if eAreaId?exists && eAreaId != "">
+			AND ss.e_areaId = :eAreaId
+		</#if>
+		<#if startTime?exists && startTime != "">
+			AND oi.createTime >= :startTime
+		</#if>
+		<#if endTime?exists && endTime != "">
+			AND oi.createTime <= :endTime
+		</#if>
+		<#if shipperName?exists && shipperName != "">
+			AND shipper.userName like "%":shipperName"%"
+		</#if>
+		<#if shipperMobile?exists && shipperMobile != "">
+			AND shipper.mobile like "%":shipperMobile"%"
+		</#if>
+		<#if driverName?exists && driverName != "">
+			AND driver.userName like "%":driverName"%"
+		</#if>
+		<#if driverMobile?exists && driverMobile != "">
+			AND driver.mobile like "%":driverMobile"%"
+		</#if>
+		<#if sourceType?exists && sourceType != "">
+			AND ss.sourceType = :sourceType
+		</#if>
+		<#if orderStatus?exists && orderStatus != "">
+			AND oi.orderStatus = :orderStatus
+		</#if>
+		<#if sendGoodsType?exists && sendGoodsType != "">
+			AND ss.sendGoodsType = :sendGoodsType
+		</#if>
+		<#if goodsType?exists && goodsType != "">
+			AND ss.goodsType = :goodsType
+		</#if>
+		<#if payStatus?exists && payStatus != "">
+			<#if payStatus == "1">
+				AND (oi.payStatus = 1 OR oi.orderStatus = 3)
+			<#else>
+				AND oi.payStatus = :payStatus
+			</#if>
+		</#if>
+		<#if transStatus?exists && transStatus != "">
+			AND oi.transStatus = :transStatus
+		</#if>
+ 	]]> 
+ 	</sql>
+ 	
+ 	<sql id="getAdminOrderDTOBySourceId">
+ 	<![CDATA[ 
+ 		SELECT
+			oi.orderNo,
+			oi.orderStatus,
+			oi.payStatus,
+			oi.transportAmt as payMoney,
+		  	shipper.userName as buyerName,
+			shipper.mobile as buyerMobile,
+			driver.userName as sellerName,
+			driver.mobile as sellerMobile
+		FROM
+			order_info oi
+		LEFT JOIN
+			member_info driver ON driver.id = oi.driverMemberId
+		LEFT JOIN
+			member_info shipper ON shipper.id = oi.shipperMemberId
+		WHERE
+			oi.sourceId = :sourceId
+ 	]]>
+ 	</sql>
+ 	
+ 	<sql id="getById">
+ 	<![CDATA[
+	 	SELECT
+			oi.id,
+			oi.orderNo,
+			oi.confirmOrderTime,
+			oi.confirmGoodsTime,
+			oi.createTime,
+			oi.orderStatus,
+			oi.payStatus,
+			oi.transportAmt,
+			driver.userName as driverName,
+			driver.mobile as driverMobile,
+			source.shipperName,
+			source.shipperMobile,
+			source.sourceType,
+			source.s_detail as sDetail,
+			source.e_detail as eDetail,
+			source.s_detailed_address as sDetailedAddress,
+			source.e_detailed_address as eDetailedAddress,
+			source.sendDate,
+			source.carType,
+			source.carLength,
+			source.sendGoodsType,
+			source.freight,
+			source.remark,
+			source.goodsType,
+			source.goodsName,
+			source.totalWeight,
+			source.totalSize,
+			mc.companyName as logisticName,
+			logistic.mobile as logisticMobile,
+			(SELECT createTime FROM order_before WHERE id = oi.orderBeforeId) as acceptTime
+		FROM(
+			SELECT
+				id,
+				orderBeforeId,
+				orderNo,
+				orderStatus,
+				payStatus,
+				sourceId,
+				transportAmt,
+				shipperMemberId,
+				driverMemberId,
+				confirmOrderTime,
+				confirmGoodsTime,
+				createTime
+			FROM
+				order_info
+			WHERE
+				id = :id
+		) as oi
+		LEFT JOIN
+			member_info driver ON driver.id = oi.driverMemberId
+		LEFT JOIN
+			source_shipper source ON source.id = oi.sourceId
+		LEFT JOIN
+			member_info logistic ON logistic.id = source.assignMemberId
+		LEFT JOIN
+			member_cer mc ON mc.memberId = source.assignMemberId AND mc.userType = 2
+ 	]]>
+ 	</sql>
+ 	
+ 	<sql id="queryListForExport"> 
+ 	<![CDATA[ 
+        SELECT
+			oi.id,
+			oi.orderNo,
+			ss.sourceType,
+			oi.createTime,
+			oi.orderStatus,
+			oi.payStatus,
+			oi.transportAmt,
+			ss.s_detail as sDetail,
+			ss.e_detail as eDetail,
+			ss.s_detailed_address as sDetailedAddress,
+			ss.e_detailed_address as eDetailedAddress,
+			ss.goodsType,
+			ss.totalWeight,
+			ss.sourceType,
+			ss.sendGoodsType,
+			ss.freight,
+			shipper.userName as shipperName,
+			shipper.mobile as shipperMobile,
+		  	driver.userName as driverName,
+			driver.mobile as driverMobile
+		FROM
+			order_info oi
+		LEFT JOIN
+			source_shipper ss ON ss.id = oi.sourceId
+		LEFT JOIN
+			member_info shipper ON shipper.id = oi.shipperMemberId
+		LEFT JOIN
+			member_info driver ON driver.id = oi.driverMemberId 
+		WHERE
+			1 = 1
+		<#if id?exists && id != "">
+			AND oi.id < :id
+		</#if>
+		<#if orderNo?exists && orderNo != "">
+			AND oi.orderNo like "%":orderNo"%"
+		</#if>
+		<#if sProvinceId?exists && sProvinceId != "">
+			AND ss.s_provinceId = :sProvinceId
+		</#if>
+		<#if sCityId?exists && sCityId != "">
+			AND ss.s_cityId = :sCityId
+		</#if>
+		<#if sAreaId?exists && sAreaId != "">
+			AND ss.s_areaId = :sAreaId
+		</#if>
+		<#if eProvinceId?exists && eProvinceId != "">
+			AND ss.e_provinceId = :eProvinceId
+		</#if>
+		<#if eCityId?exists && eCityId != "">
+			AND ss.e_cityId = :eCityId
+		</#if>
+		<#if eAreaId?exists && eAreaId != "">
+			AND ss.e_areaId = :eAreaId
+		</#if>
+		<#if startTime?exists && startTime != "">
+			AND oi.createTime >= :startTime
+		</#if>
+		<#if endTime?exists && endTime != "">
+			AND oi.createTime <= :endTime
+		</#if>
+		<#if shipperName?exists && shipperName != "">
+			AND shipper.userName like "%":shipperName"%"
+		</#if>
+		<#if shipperMobile?exists && shipperMobile != "">
+			AND shipper.mobile like "%":shipperMobile"%"
+		</#if>
+		<#if driverName?exists && driverName != "">
+			AND driver.userName like "%":driverName"%"
+		</#if>
+		<#if driverMobile?exists && driverMobile != "">
+			AND driver.mobile like "%":driverMobile"%"
+		</#if>
+		<#if sourceType?exists && sourceType != "">
+			AND ss.sourceType = :sourceType
+		</#if>
+		<#if orderStatus?exists && orderStatus != "">
+			AND oi.orderStatus = :orderStatus
+		</#if>
+		<#if sendGoodsType?exists && sendGoodsType != "">
+			AND ss.sendGoodsType = :sendGoodsType
+		</#if>
+		<#if goodsType?exists && goodsType != "">
+			AND ss.goodsType = :goodsType
+		</#if>
+		<#if payStatus?exists && payStatus != "">
+			<#if payStatus == "1">
+				AND (oi.payStatus = 1 OR oi.orderStatus = 3)
+			<#else>
+				AND oi.payStatus = :payStatus
+			</#if>
+		</#if>
+		ORDER BY oi.id DESC
+		<#if pageSize?exists && pageSize != "">
+			LIMIT :pageSize
+		</#if>   
+ 	]]> 
+ 	</sql>
+</sqlMap>

@@ -1,0 +1,150 @@
+package cn.gdeng.nst.server.member.impl;
+
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import cn.gdeng.nst.api.dto.member.RuleLogisticDTO;
+import cn.gdeng.nst.api.dto.member.RuleOnoffDTO;
+import cn.gdeng.nst.api.dto.redis.AreaDTO;
+import cn.gdeng.nst.api.server.member.RuleOnoffApiService;
+import cn.gdeng.nst.api.vo.member.RuleOnoffDetailVo;
+import cn.gdeng.nst.dao.BaseDao;
+import cn.gdeng.nst.entity.nst.RuleOnoffEntity;
+import cn.gdeng.nst.enums.MsgCons;
+import cn.gdeng.nst.enums.NstRuleOnoffEnum;
+import cn.gdeng.nst.util.server.bo.CacheBo;
+import cn.gdeng.nst.util.web.api.ApiResult;
+import cn.gdeng.nst.util.web.api.BizException;
+
+import com.alibaba.dubbo.config.annotation.Service;
+import com.gudeng.framework.dba.transaction.annotation.Transactional;
+
+@Service
+public class RuleOnoffApiServiceImpl implements RuleOnoffApiService{
+    
+    @Resource
+    private BaseDao<?> baseDao;
+    @Autowired
+	private CacheBo cacheBo;
+
+    /**
+     * 修改订阅地址
+     * @param  id
+     * @return 影响条数
+     */
+	@Override
+    @Transactional
+	public ApiResult<Integer>  updateRuleOnoffAddressById(RuleOnoffDTO ruleOnoffDTO) throws BizException {
+		if(null==ruleOnoffDTO.getMemberId()){
+			throw new BizException(MsgCons.C_20001, MsgCons.M_20001);
+		}
+		if(null==ruleOnoffDTO.getCityName()&&null==ruleOnoffDTO.getCityId()){
+			throw new BizException(MsgCons.C_20001, MsgCons.M_20001);
+		}
+		if(null!=ruleOnoffDTO.getCityName()&&null==ruleOnoffDTO.getCityId()){//是否为定位地址数据
+			AreaDTO areaDto=cacheBo.getAreaByName(ruleOnoffDTO.getCityName(),false, baseDao);//不是省
+			if(null==areaDto){
+				throw new BizException(MsgCons.C_20001, MsgCons.M_20001);
+			}
+			ruleOnoffDTO.setCityId(Integer.parseInt(areaDto.getAreaID()));
+			if(null==areaDto.getFather()){//是否为直辖市
+				ruleOnoffDTO.setProvinceId(Integer.parseInt(areaDto.getAreaID()));
+			}else{
+				ruleOnoffDTO.setProvinceId(Integer.parseInt(areaDto.getFather()));
+			}
+			String sDetail = ruleOnoffDTO.getDetail();
+			if(null==sDetail){
+				throw new BizException(MsgCons.C_20001, MsgCons.M_20001);
+			}
+			if (ruleOnoffDTO.getDetail().startsWith("/")) {
+				Integer id = ruleOnoffDTO.getProvinceId();
+				AreaDTO dto=cacheBo.getAreaByName(id.toString(), baseDao);
+				sDetail = dto.getArea() + sDetail;
+				ruleOnoffDTO.setDetail(sDetail);
+			}
+		}
+		 ApiResult<Integer> apiResult = null;
+		int re=baseDao.execute("RuleOnoffApi.updateRuleOnoffAddressById",ruleOnoffDTO);
+		if(re>0){
+			apiResult=	new ApiResult<Integer>(re,MsgCons.C_10000,MsgCons.M_10000);
+		}else{
+			apiResult=	new ApiResult<Integer>(re,MsgCons.C_20000,MsgCons.M_20000);
+		}
+	     return apiResult;
+	}
+	/**
+     * 修改订阅状态
+     * @param  id
+     * @return 影响条数
+     */
+	@Override
+    @Transactional
+	public ApiResult<Integer>  updateRuleOnoffById(RuleOnoffDTO ruleOnoffDTO) throws BizException {
+		if(null==ruleOnoffDTO.getMemberId()){
+			throw new BizException(MsgCons.C_20001, MsgCons.M_20001);
+		}
+		int count=baseDao.queryForObject("RuleOnoffApi.ruleLogisticCountByMemberId", ruleOnoffDTO, Integer.class);
+		int RuleCount=baseDao.queryForObject("RuleOnoffApi.RuleOnoffCountByMemberId", ruleOnoffDTO, Integer.class);
+		if(ruleOnoffDTO.getOnOff()==NstRuleOnoffEnum.on.getCode()){//开启需判断 是否有对应物流规则
+			if(count==0){
+				throw new BizException(MsgCons.C_22100, MsgCons.M_22100);
+			}
+		}
+	    if(RuleCount==0){
+	         RuleOnoffEntity re=new RuleOnoffEntity();
+			 re.setMemberId(ruleOnoffDTO.getMemberId());
+			 re.setOnOff(ruleOnoffDTO.getOnOff());
+			 baseDao.persist(re,Long.class);
+	       }
+		int re=baseDao.execute("RuleOnoffApi.updateRuleOnoffById",ruleOnoffDTO);
+		 ApiResult<Integer> apiResult =null;
+			if(re>0){
+				apiResult=	new ApiResult<Integer>(re,MsgCons.C_10000,MsgCons.M_10000);
+			}else{
+				apiResult=	new ApiResult<Integer>(re,MsgCons.C_20000,MsgCons.M_20000);
+			}
+	     return apiResult;
+	}
+
+
+	@Override
+	public ApiResult<RuleOnoffDetailVo> queryRuleOnoffById(
+			RuleOnoffDTO ruleOnoffDTO) throws BizException {
+		if(null==ruleOnoffDTO.getMemberId()){
+			throw new BizException(MsgCons.C_20001, MsgCons.M_20001);
+		}
+		int count=baseDao.queryForObject("RuleOnoffApi.ruleLogisticCountByMemberId", ruleOnoffDTO, Integer.class);
+		RuleOnoffDetailVo vo = baseDao.queryForObject("RuleOnoffApi.queryRuleOnoffById", ruleOnoffDTO, RuleOnoffDetailVo.class);  
+		if(null==vo){
+			vo=new RuleOnoffDetailVo();
+		}
+		if(count>0){
+			vo.setFlag(1);
+		}else{
+			vo.setFlag(0);
+		}
+        ApiResult<RuleOnoffDetailVo> apiResult = new ApiResult<RuleOnoffDetailVo>(vo,MsgCons.C_10000,MsgCons.M_10000);
+        return apiResult;
+	}
+
+	
+	@Override
+	public ApiResult<?> IsCanAcceptedGoods(Map<String, Object> param) throws BizException {
+		ApiResult<Object> result = new ApiResult<Object>();
+		RuleLogisticDTO ruleLogisticDTO = baseDao.queryForObject("RuleLogistic.queryValidByMemberId", param, RuleLogisticDTO.class);
+		if (ruleLogisticDTO ==  null) {
+			return result.withError(MsgCons.C_22100, MsgCons.M_22100);
+		}
+		//开关状态
+		RuleOnoffDTO ruleOnoffDTO = baseDao.queryForObject("RuleOnoffApi.queryRuleOnoffById", param, RuleOnoffDTO.class);     		
+		if (ruleOnoffDTO ==  null || (ruleOnoffDTO != null && ruleOnoffDTO.getOnOff() != 2)) {
+			result.setResult(1);
+		}else{
+			result.setResult(2);
+		}
+		return result;
+	}
+}

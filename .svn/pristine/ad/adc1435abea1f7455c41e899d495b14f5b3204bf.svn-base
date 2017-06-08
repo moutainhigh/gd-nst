@@ -1,0 +1,167 @@
+package cn.gdeng.nst.admin.dto.admin;
+
+import java.util.Date;
+
+import cn.gdeng.nst.entity.nst.OrderBeforeEntity;
+import cn.gdeng.nst.enums.MemberInfoRegetypeEnum;
+import cn.gdeng.nst.enums.OrderBeforeEnum;
+import cn.gdeng.nst.enums.SourceTypeEnum;
+
+public class AdminOrderBeforeDTO extends OrderBeforeEntity{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -9009222247393861523L;
+	
+	private String driverMemberName;
+	
+	private String driverMemberMobile;
+	
+	private Date orderAgentLogisticTime;
+	
+	private Date orderInfoConfirmOrderTime;
+	
+	private Integer nstRule;
+	
+	/**线路类型：1 干线 2 同城*/
+	private Integer sourceType;
+	
+	private String sDetail;
+	
+	private String eDetail;
+	
+	private Double totalWeight;
+	
+	/**货源发布时间*/
+	private Date releaseTime;
+	
+	/**发布人注册来源*/
+	private Byte regeType;
+
+	public String getDriverMemberName() {
+		return driverMemberName;
+	}
+
+	public void setDriverMemberName(String driverMemberName) {
+		this.driverMemberName = driverMemberName;
+	}
+
+	public String getDriverMemberMobile() {
+		return driverMemberMobile;
+	}
+
+	public void setDriverMemberMobile(String driverMemberMobile) {
+		this.driverMemberMobile = driverMemberMobile;
+	}
+
+	public Date getOrderAgentLogisticTime() {
+		return orderAgentLogisticTime;
+	}
+
+	public void setOrderAgentLogisticTime(Date orderAgentLogisticTime) {
+		this.orderAgentLogisticTime = orderAgentLogisticTime;
+	}
+
+	public Date getOrderInfoConfirmOrderTime() {
+		return orderInfoConfirmOrderTime;
+	}
+
+	public void setOrderInfoConfirmOrderTime(Date orderInfoConfirmOrderTime) {
+		this.orderInfoConfirmOrderTime = orderInfoConfirmOrderTime;
+	}
+
+	public Integer getNstRule() {
+		return nstRule;
+	}
+
+	public void setNstRule(Integer nstRule) {
+		this.nstRule = nstRule;
+	}
+
+	public Integer getSourceType() {
+		return sourceType;
+	}
+
+	public void setSourceType(Integer sourceType) {
+		this.sourceType = sourceType;
+	}
+
+	public String getSDetail() {
+		return sDetail;
+	}
+
+	public void setSDetail(String sDetail) {
+		this.sDetail = sDetail;
+	}
+
+	public String getEDetail() {
+		return eDetail;
+	}
+
+	public void setEDetail(String eDetail) {
+		this.eDetail = eDetail;
+	}
+
+	public Double getTotalWeight() {
+		return totalWeight;
+	}
+
+	public void setTotalWeight(Double totalWeight) {
+		this.totalWeight = totalWeight;
+	}
+
+	public Date getReleaseTime() {
+		return releaseTime;
+	}
+
+	public void setReleaseTime(Date releaseTime) {
+		this.releaseTime = releaseTime;
+	}
+
+	public Byte getRegeType() {
+		return regeType;
+	}
+
+	public void setRegeType(Byte regeType) {
+		this.regeType = regeType;
+	}
+
+	public String getSDetailStr(){
+		String sDetail = getSDetail();
+		if(sDetail != null){
+			String[] detailArray = sDetail.split("/");
+			StringBuilder sb = new StringBuilder();
+			for(String val : detailArray){
+				sb.append(val).append(" ");
+			}
+			return sb.toString();
+		}
+		return null;
+	}
+	
+	public String getEDetailStr(){
+		String eDetail = getEDetail();
+		if(eDetail != null){
+			String[] detailArray = eDetail.split("/");
+			StringBuilder sb = new StringBuilder();
+			for(String val : detailArray){
+				sb.append(val).append(" ");
+			}
+			return sb.toString();
+		}
+		return null;
+	}
+	
+	public String getSourceTypeStr(){
+		return SourceTypeEnum.getNameByCode(getSourceType());
+	}
+	
+	public String getSourceStatusStr(){
+		return OrderBeforeEnum.getNameByCode(getSourceStatus());
+	}
+	
+	public String getRegeTypeStr(){
+		return MemberInfoRegetypeEnum.getNameByCode(getRegeType());
+	}
+}

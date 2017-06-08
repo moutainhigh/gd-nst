@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="ruleLogisticAssign">
+ 	
+	<sql id="ruleLogisticAssignCount">
+	select count(1) from rule_logistic_assign
+	where memberIdShipper=:memberId  and isDeleted=0
+	</sql>
+	
+	<sql id="deleteRuleLogisticAssign">
+	UPDATE rule_logistic_assign set isDeleted=1 where  memberIdShipper=:memberId
+	</sql>
+	
+</sqlMap>

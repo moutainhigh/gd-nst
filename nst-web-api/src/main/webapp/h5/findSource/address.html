@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title></title>
+		<link href="../../css/mui.min.css" rel="stylesheet" />
+		<link rel="stylesheet" href="../../css/style.css" />
+	</head>
+	<body>
+	<section class="detail-main addressMain">
+		<header class="">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left">返回</a>
+			<h1 class="mui-title">选择地址</h1>
+			<a class="clear-right red-text" href="index.html" id="clearRight">清除</a>
+		</header>
+		<section class="choise-addr">
+			<ul class="head-list clearfix">
+				<li class="curr-chiose" id="choiseProv"><em>选择省份</em><span class="mui-icon mui-icon-arrowright"></span></li>
+				<li id="choiseCity"><em>选择城市</em><span class="mui-icon mui-icon-arrowright"></span></li>
+				<li id="choiseArea"><em>选择区县</em></li>
+			</ul>
+		</section>
+		<div id="adrTest" style="display:block;margin-top: 150px; position: absolute;"></div>
+		<section class="city-main provMain">
+			<article class="hosit-city" id="hositCity">
+				<div class="city-title">历史城市</div>
+				<div class="city-list">
+					<ul id="hositWrap" style="font-size: 14px;">
+						
+					</ul>
+				</div>
+			</article>
+			<article class="prov-city provCity" id="provCity">
+				<div class="city-title">直辖市</div>
+				<div class="city-list">
+					<ul id="directlyCityWarp"></ul>
+				</div>
+			</article>
+			<article class="prov-city provCity">
+				<div class="city-title">省</div>
+				<div class="city-list">
+					<ul id="provinceWarp"></ul>
+				</div>
+			</article>
+			<article class="prov-city provCity">
+				<div class="city-title">自治区</div>
+				<div class="city-list">
+					<ul id="regionWarp"></ul>
+				</div>
+			</article>
+		</section>
+	
+		<section class="city-main coutMain" style="display: none;">
+			<article class="prov-city" id="coutCity">
+				<div class="city-title"></div>
+				<div class="city-list">
+					<ul id="coutCityWarp">
+						
+					</ul>
+				</div>
+			</article>
+			
+		</section>
+		<section class="city-main cityMain" style="display: none;">
+			<article class="prov-city" id="areaCity">
+				<div class="city-title"></div>
+				<div class="city-list">
+					<ul id="areaWarp">
+						
+					</ul>
+				</div>
+			</article>
+			
+		</section>
+	</section>
+	</body>
+	<script id="directlyCityTemp" type="text/x-jquery-tmpl">
+	{{each(i,d) areas}}
+		<li areaID = ${areaID}>${area}</li>
+ 	{{/each}}
+	</script>
+	<script id="provinceTemp" type="text/x-jquery-tmpl">
+	<li class="allAddress">全国</li>
+	{{each(i,d) areasProv}}
+		<li areaID = ${areaID}>${area}</li>
+ 	{{/each}}
+	</script>
+	<script id="regionTemp" type="text/x-jquery-tmpl">
+	{{each(i,d) areasRegion}}
+		<li areaID = ${areaID}>${area}</li>
+ 	{{/each}}
+	</script>
+	<script id="coutCityTemp" type="text/x-jquery-tmpl">
+	
+	{{each(i,d) areasRegion}}
+		{{if i == 0}}  
+		<li areaID = ${father} class="allAddress">全省</li>
+		{{/if}}  
+		<li areaID = ${areaID}>${area}</li>
+ 	{{/each}}
+	</script>
+	<script id="areaTemp" type="text/x-jquery-tmpl">
+	{{each(i,d) areaList}}
+		{{if i == 0}}  
+		<li areaID = ${father} class="allAddress">全市</li>
+		{{/if}}  
+		<li areaID = ${areaID}>${area}</li>
+ 	{{/each}}
+	</script>
+	<script src="../../js/mui.min.js"></script>
+	<script type="text/javascript" src="../../js/jquery.js" ></script>
+	<script type="text/javascript" src="../../js/jquery.tmpl.min.js" ></script>
+	<script type="text/javascript" src="../../js/basic.js" ></script>
+	<script type="text/javascript" src="../../js/address.js" ></script>
+	<script type="text/javascript" charset="utf-8">
+		mui.init();
+		
+	</script>
+
+</html>
+

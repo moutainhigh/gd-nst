@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="RuleOnoffApi">    
+
+   <sql id="updateRuleOnoffById">
+   <![CDATA[  update rule_onoff
+    set onOff=:onOff
+    where  memberId=:memberId ]]>
+	</sql>
+	
+	
+   <sql id="updateRuleOnoffAddressById">
+   <![CDATA[  update rule_onoff
+    set provinceId=:provinceId,cityId=:cityId,areaId=:areaId,detail=:detail
+    where  memberId=:memberId and id=:id]]>
+	</sql>
+	
+  <sql id="queryRuleOnoffById">
+	   <![CDATA[
+		     SELECT id,onOff,memberId,areaId,cityId,provinceId,detail
+		   	 FROM rule_onoff r  
+		     WHERE r.memberId=:memberId AND r.isDeleted = 0
+	 	]]>
+	</sql>	
+	
+	<sql id="RuleOnoffCountByMemberId">
+	 <![CDATA[ select  count(1)
+   from rule_onoff r  
+     where r.memberId=:memberId ]]>
+	</sql>
+	
+   <sql id="ruleLogisticCountByMemberId">
+  	 <![CDATA[  SELECT
+			count(1)
+			FROM
+				rule_logistic A
+			WHERE 1=1
+			AND A.isDeleted = 0
+			AND A.memberId=:memberId ]]>
+	</sql>
+
+
+</sqlMap>

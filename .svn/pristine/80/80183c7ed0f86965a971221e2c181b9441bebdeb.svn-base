@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title></title>
+		<link href="../../css/mui.min.css" rel="stylesheet" />
+		<link rel="stylesheet" href="../../css/style.css" />
+	</head>
+	<body>
+		<header class="head-cont">
+			<div class="mui-collapse mui-table-view-cell">
+				<a href="#popover" class="mui-navigate-right">
+					<!-- <span class="mui-icon mui-icon-left-nav">返回</span> -->
+					<span id="findText">找货源</span></a>
+				<div id="popover" class="mui-popover select-radio">
+				<ul class="mui-collapse-content ">
+					<li class="mui-table-view-cell select-radio-option" date-id="0">
+						<span class="mui-navigate-right">不限</span>
+					</li>
+					<li class="mui-table-view-cell" date-id="2">
+						<span class="mui-navigate-right">同城货源</span>
+					</li>
+					<li class="mui-table-view-cell" date-id="1">
+						<span class="mui-navigate-right">干线货源</span>
+					</li>
+				</ul>
+			</div>
+			</div>
+			<ul class="head-list">
+				<li><a href="address.html">出发地<span class="arrowdown-close"></span></a></li>
+				<li><a href="address.html">目的地<span class="arrowdown-close"></span></a></li>
+				<li>
+					<a href="#carstyle"><em class="list-text">车型</em><span class="arrowdown-close"></span></a>
+
+					<div id="carstyle" class="mui-popover select-poper">
+					<ul class="mui-collapse-content select-list carstyle">
+						<li date-id="-1">不限</li>
+						<li date-id="1">小型面包</li>
+						<li date-id="2">金杯</li>
+						<li date-id="3">小型平板</li>
+						<li date-id="4">中型平板</li>
+						<li date-id="5">小型厢货</li>
+						<li date-id="6">大型厢货</li>
+						<li date-id="7">敞车</li>
+						<li date-id="8">厢式货车</li>
+						<li date-id="9">高栏车</li>
+						<li date-id="10">平板车</li>
+						<li date-id="11">集装箱</li>
+						<li date-id="12">保温车</li>
+						<li date-id="13">冷藏车</li>
+						<li date-id="14">活鲜水车</li>
+						<li date-id="15">其它</li>
+					</ul>
+					</div>
+				</li>
+				<li>
+					<a href="#carlong">
+						<em class="list-text">车长</em>
+						<span class="arrowdown-close"></span></a>
+					<div id="carlong" class="mui-popover select-poper">
+					<ul class="mui-collapse-content select-list">
+						<li date-val="-1">不限</li>
+						<li date-val="1.7">1.7米</li>
+						<li date-val="2">2米</li>
+						<li date-val="2.7">2.7米</li>
+						<li date-val="4.2">4.2米</li>
+						<li date-val="4.5">4.5米</li>
+						<li date-val="5">5米</li>
+						<li date-val="6.2">6.2米</li>
+						<li date-val="6.8">6.8米</li>
+						<li date-val="7.2">7.2米</li>
+						<li date-val="7.7">7.7米</li>
+						<li date-val="7.8">7.8米</li>
+						<li date-val="8.2">8.2米</li>
+						<li date-val="8.6">8.6米</li>
+						<li date-val="8.7">8.7米</li>
+						<li date-val="9.6">9.6米</li>
+						<li date-val="11.7">11.7米</li>
+						<li date-val="12.5">12.5米</li>
+						<li date-val="13">13米</li>
+						<li date-val="13.5">13.5米</li>
+						<li date-val="14">14米</li>
+						<li date-val="15">15米</li>
+						<li date-val="16">16米</li>
+						<li date-val="17.5">17.5米</li>
+						<li date-val="18">18米</li>
+						<li date-val="20">20米</li>
+						<li date-val="0">其他</li>
+					</ul>
+					</div>
+				</li>
+			</ul>
+			<p class="mui-text-right all-number">共12345条货源</p>
+		</header>
+		<section class="find-main">
+			<ul class="mui-table-view" id="sourceWrap"></ul>
+		</section>
+	</body>
+	<script id="sourceTemp" type="text/x-jquery-tmpl">
+	{{each(i,d) datalist}}
+   		<li class="mui-table-view-cell mui-media" date-id="${sourceId}">
+			<section class="cont-head">
+				<div class="right-time">${timeStr}</div>
+					<div class="head-left">
+						<p class="pho-img">
+							<img src="../../images/headpho.png" width="100%">
+						</p>
+						<span class="person-name">${userName}</span>
+						{{if cerPersonalStatus == 2 }}
+							<i class="yirenz-icon"></i>
+						{{else}}
+            				<i class="yirenz-icon wrz-icon"></i>
+						{{/if}}
+						
+					</div>
+			</section>
+			<section class="cont-body">
+				<div class="address-cont">
+					<span>${s_detail}</span>
+					<span class="address-speed"><i></i>${mileage}公里</span>
+					<span>${e_detail}</span>
+				</div>
+				<p class="address-text">
+					<i></i>
+					<span data-type="${goodsType}">${goodsTypeStr}</span><span>${totalWeight}吨</span>
+					<span>${totalSize}米</span><span>${carTypeStr}</span>
+				</p>
+			</section>
+			<section class="cont-foot">
+				<a class="call-photo" href="tel:${mobile}">拨打电话</a>
+		</section>
+	</li>
+	{{/each}}
+	</script>
+	<script src="../../js/mui.min.js"></script>
+	<script type="text/javascript" src="../../js/jquery.js" ></script>
+	<script type="text/javascript" src="../../js/jquery.tmpl.min.js" ></script>
+	<script type="text/javascript" src="../../js/dataJSON.js" ></script>
+	<script type="text/javascript" src="../../js/findSource.js" ></script>
+	<script type="text/javascript" charset="utf-8">
+		mui.init();
+		
+	</script>
+
+</html>

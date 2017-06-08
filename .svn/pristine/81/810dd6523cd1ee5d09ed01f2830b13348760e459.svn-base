@@ -1,0 +1,60 @@
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<table id="orderBeforedg" title=""></table>
+<script type="text/javascript">
+$(document).ready(function(){
+	var sourceId = $("#sourceId").val();
+	loadOrderBeforeListData(sourceId);
+});
+function loadOrderBeforeListData(sourceId){
+	$('#orderBeforedg').datagrid({
+		url:CONTEXT+'sourceShipper/orderBeforeList/'+sourceId,
+		height: 'auto', 
+		nowrap:true,
+		pageSize:10,
+		rownumbers:true,
+		pagination:false,
+		fitColumns:true,
+		fit:true,
+		columns:[[
+			{field:'driverMemberName',title:'司机姓名',width:100,align:'center'},
+			{field:'driverMemberMobile',title:'司机手机号码',width:100,align:'center'},
+			{field:'createTime',title:'接单时间',width:100,align:'center'},
+			{field:'nstRule',hidden:true},
+			{field:'orderInfoConfirmOrderTime',hidden:true},
+			{field:'orderAgentLogisticTime',hidden:true},
+			{field:'updateTime',title:'确认时间',width:100,align:'center',formatter:confirmTimeFormatter},
+			{field:'sourceStatus',title:'确认状态',width:100,align:'center', formatter:sourceStatusFormatter},
+		]]
+	}); 
+}
+function confirmTimeFormatter(val, row, index){
+	// 订单确认后才显示确认时间
+	if(row.sourceStatus == 2 || row.sourceStatus == 3 || row.sourceStatus == 4){
+		// 物流公司直发
+		if(row.nstRule == 4){
+			return row.orderAgentLogisticTime
+		}
+		return row.orderInfoConfirmOrderTime;
+	}
+	return "";
+}
+
+function sourceStatusFormatter(val, row, index){
+	if(val == 1){
+		return "接单";
+	}
+	else if(val == 2 || val == 3){
+		return "接受";
+	}
+	else if(val == 4){
+		return "拒绝";
+	}
+	else if(val == 5){
+		return "超时";
+	}
+	else if(val == 6){
+		return "取消"
+	}
+	return "";
+}
+</script>

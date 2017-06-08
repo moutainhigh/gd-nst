@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/context  
+    http://www.springframework.org/schema/context/spring-context.xsd">
+    
+         <!-- 定时消息消费者定义 -->
+        <bean id="taskListener" class="cn.gdeng.nst.server.mq.task.TaskListener"></bean>
+        <bean id="taskConsumer" class="com.aliyun.openservices.ons.api.bean.ConsumerBean" init-method="start" destroy-method="shutdown">
+            <property name="properties" >
+                <props>
+                    <prop key="ConsumerId">CID_dev_nst_task</prop>
+                    <prop key="AccessKey">FmQ1FZSfeGcLxl13</prop>
+                    <prop key="SecretKey">t3QfuZjugirBJraeD8TIz1G5cpTfUY</prop>
+                    <prop key="ConsumeThreadNums">1</prop>
+                </props>
+            </property>
+            <property name="subscriptionTable">
+                <map>
+                    <entry value-ref="taskListener">
+                        <key>
+                            <bean class="com.aliyun.openservices.ons.api.bean.Subscription">
+                                <property name="topic" value="dev_nst_task"/>
+                                <property name="expression" value="*"/>
+                            </bean>
+                        </key>
+                    </entry>
+                </map>
+            </property>
+        </bean>
+
+        <bean id="pushListener" class="cn.gdeng.nst.server.mq.push.PushListener">
+        	<property name="properties" >
+                <props>
+                	<prop key="production_mode">false</prop>
+                    <prop key="android_key_1">57b3041067e58ea2e2002969</prop>
+                    <prop key="android_secret_1">flckjuzuherrwzclq6secajevuh9fdck</prop>
+                    <prop key="android_key_2">57b30163e0f55afcb200103b</prop>
+                    <prop key="android_secret_2">p7xksqo7krnzk4hi0nqb6z7gq9mlod8f</prop>
+                    <prop key="android_key_3">57b16358e0f55aea64001783</prop>
+                    <prop key="android_secret_3">jxgpu9rlzft9zo6t4nukx8jmxwbpooai</prop>                    
+                    <prop key="ios_key_1">57b2c5e7e0f55a82ca00344b</prop>
+                    <prop key="ios_secret_1">ftgjxkudkaof14opqp7emipjrvyt9lke</prop>
+                    <prop key="ios_key_2">57b2c5ade0f55a9a9f000105</prop>
+                    <prop key="ios_secret_2">0tn0kh5hbqxyczwuwcr4tynwheeehvhs</prop>
+                    <prop key="ios_key_3">57b2bc84e0f55afa940007cd</prop>
+                    <prop key="ios_secret_3">5zhgixnzjkdnujwcvl1co5h9xsnfj9wn</prop>
+                </props>
+            </property>
+        </bean>
+        <bean id="pushConsumer" class="com.aliyun.openservices.ons.api.bean.ConsumerBean" init-method="start" destroy-method="shutdown">
+            <property name="properties" > <!--消费者配置信息-->
+                <props>
+                    <prop key="ConsumerId">CID_dev_nst_msg_push</prop>
+                    <prop key="AccessKey">FmQ1FZSfeGcLxl13</prop>
+                    <prop key="SecretKey">t3QfuZjugirBJraeD8TIz1G5cpTfUY</prop>
+                    <!--将消费者线程数固定为50个-->
+                    <prop key="ConsumeThreadNums">1</prop>
+                </props>
+            </property>
+            <property name="subscriptionTable">
+                <map>
+                    <entry value-ref="pushListener">
+                        <key>
+                            <bean class="com.aliyun.openservices.ons.api.bean.Subscription">
+                                <property name="topic" value="dev_nst_msg_push"/>
+                                <property name="expression" value="*"/>
+                            </bean>
+                        </key>
+                    </entry>
+                    <!--更多的订阅添加entry节点即可-->
+                </map>
+            </property>
+        </bean>
+        
+    </beans>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="OrderBefore">
+	
+<!--更新预运单关闭(平台配送)-->
+	<sql id="updateOrderBeforeClose">
+         <![CDATA[
+      		UPDATE order_before
+					SET `sourceStatus` = 7,
+						updateTime=SYSDATE()
+			WHERE
+				sourceId =:sourceId
+         ]]>
+	</sql>
+</sqlMap>

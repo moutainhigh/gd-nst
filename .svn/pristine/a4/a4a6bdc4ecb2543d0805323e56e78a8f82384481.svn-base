@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="Advertisement">
+	<sql id="queryProvinceIdList"> 
+ 	<![CDATA[ 
+   		SELECT
+   			distinct(provinceId)
+   		FROM
+   			advertisement
+ 	]]> 
+ 	</sql>	
+ 	
+ 	<sql id="queryCityIdList"> 
+ 	<![CDATA[ 
+   		SELECT
+   			distinct(cityId)
+   		FROM
+   			advertisement
+ 	]]> 
+ 	</sql>
+ 	
+ 	<sql id="queryListByPage"> 
+ 	<![CDATA[ 
+   		SELECT
+   			ad.id,
+   			ad.name,
+   			ad.channel,
+   			ad.status,
+   			ad.startTime,
+   			ad.endTime,
+   			ad.sort,
+   			ad.createTime,
+   			ad.cityId,
+   			(
+   				SELECT
+   					area
+   				FROM 
+   					area
+   				WHERE areaID = ad.cityId
+   			) as cityName
+   		FROM
+   			advertisement ad
+   		WHERE
+   			1 = 1
+   		<#if provinceId?exists && provinceId != "">
+   			AND provinceId = :provinceId
+   		</#if>
+   		<#if cityId?exists && cityId != "">
+   			AND cityId = :cityId
+   		</#if>
+   		<#if name?exists && name != "">
+   			AND name like "%":name"%"
+   		</#if>
+   		<#if channel?exists && channel != "">
+   			AND channel = :channel
+   		</#if>
+   		<#if status?exists && status != "">
+   			<#if status == "1">
+   				AND status = 1 AND ad.endTime >= :nowDate
+   			<#elseif status == "2">
+				AND status = 2 AND ad.endTime >= :nowDate
+			<#elseif status == "3">
+				AND ad.endTime <= :nowDate  				
+   			</#if>
+   		</#if>
+   		<#if startTime?exists && startTime!="" && endTime?exists && endTime!="">
+   			AND 
+   			(
+   				(startTime >= :startTime AND startTime <= :endTime) OR 
+   				(endTime >= :startTime AND endTime <= :endTime) OR
+   				(startTime <= :startTime AND endTime >= :endTime)
+   			)
+   		<#else>
+   			<#if starTime?exists && startTime!="">
+   				AND startTime >= :startTime
+   			<#elseif endTime?exists && endTime!="">
+   				AND endTime <= :endTime
+   			</#if>
+   		</#if>
+   		ORDER BY ad.createTime DESC
+   		LIMIT :startRow,:endRow 
+ 	]]> 
+ 	</sql>
+ 	
+ 	<sql id="countTotal"> 
+ 	<![CDATA[ 
+   		SELECT
+   			count(*)
+   		FROM
+   			advertisement ad
+   		WHERE
+   			1 = 1
+   		<#if provinceId?exists && provinceId != "">
+   			AND provinceId = :provinceId
+   		</#if>
+   		<#if cityId?exists && cityId != "">
+   			AND cityId = :cityId
+   		</#if>
+   		 		<#if name?exists && name != "">
+   			AND name like "%":name"%"
+   		</#if>
+   		<#if channel?exists && channel != "">
+   			AND channel = :channel
+   		</#if>
+   		<#if status?exists && status != "">
+   			<#if status == "1">
+   				AND status = 1 AND ad.endTime >= :nowDate
+   			<#elseif status == "2">
+				AND status = 2 AND ad.endTime >= :nowDate
+			<#elseif status == "3">
+				AND ad.endTime <= :nowDate  				
+   			</#if>
+   		</#if>
+   		<#if startTime?exists && startTime!="" && endTime?exists && endTime!="">
+   			AND 
+   			(
+   				(startTime >= :startTime AND startTime <= :endTime) OR 
+   				(endTime >= :startTime AND endTime <= :endTime) OR
+   				(startTime <= :startTime AND endTime >= :endTime)
+   			)
+   		<#else>
+   			<#if starTime?exists && startTime!="">
+   				AND startTime >= :startTime
+   			<#elseif endTime?exists && endTime!="">
+   				AND endTime <= :endTime
+   			</#if>
+   		</#if>
+ 	]]> 
+ 	</sql>
+ 	
+ 	<sql id="countValid">
+ 	<![CDATA[
+ 		SELECT
+ 			count(*)
+ 		FROM
+ 		 	advertisement
+ 		WHERE
+ 			status = 1 AND endTime > :nowDate AND cityId = :cityId And channel = :channel
+ 	]]> 
+ 	</sql>
+ 	
+ 	<sql id="getById">
+ 	<![CDATA[
+ 		SELECT
+ 			id,
+ 			name,
+ 			provinceId,
+ 			cityId,
+ 			imgUrl,
+ 			channel,
+ 			status,
+ 			startTime,
+ 			endTime,
+ 			sort,
+ 			createUserId,
+ 			createTime
+ 		FROM
+ 		 	advertisement
+ 		WHERE
+			id = :id
+ 	]]> 
+ 	</sql>
+ 	
+ 	<sql id="updateStatus">
+ 	<![CDATA[
+ 		UPDATE
+ 		 	advertisement
+ 		SET
+ 			status = :status,
+ 			updateUserId = :updateUserId,
+ 			updateTime = SYSDATE()
+ 		WHERE
+			id = :id
+ 	]]> 
+ 	</sql>
+ 	
+ 	<sql id="update">
+ 	<![CDATA[
+ 		UPDATE
+ 		 	advertisement
+ 		SET
+ 			name = :name,
+ 			channel = :channel,
+ 			imgUrl = :imgUrl,
+ 			startTime = :startTimeStr,
+ 			endTime = :endTimeStr,
+ 			sort = :sort,
+ 			updateUserId = :updateUserId,
+ 			updateTime = SYSDATE()
+ 		WHERE
+			id = :id
+ 	]]> 
+ 	</sql>
+ 	
+ 	<sql id="exists">
+ 	<![CDATA[
+ 		select 
+			count(*)
+		FROM
+  			advertisement
+		WHERE
+			`name` = :name AND channel = :channel AND cityId = :cityId
+ 	]]> 
+ 	</sql>
+ 	
+ 	<sql id="sortExists">
+ 	<![CDATA[
+ 		SELECT
+ 			count(*)
+ 		FROM
+ 			advertisement
+ 		WHERE
+ 			status = 1 AND endTime > :nowTime AND sort = :sort 
+ 			AND channel = :channel AND cityId = :cityId
+ 	]]> 
+ 	</sql>
+</sqlMap>

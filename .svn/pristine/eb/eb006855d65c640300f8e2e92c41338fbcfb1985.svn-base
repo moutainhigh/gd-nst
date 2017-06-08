@@ -1,0 +1,466 @@
+package cn.gdeng.nst.server.order.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.alibaba.dubbo.config.annotation.Service;
+import com.alibaba.fastjson.JSON;
+import com.aliyun.openservices.ons.api.Message;
+import com.aliyun.openservices.ons.api.bean.ProducerBean;
+import com.gudeng.framework.dba.transaction.annotation.Transactional;
+
+import cn.gdeng.nst.api.dto.order.OrderInfoDTO;
+import cn.gdeng.nst.api.dto.order.OrderInfoTransDTO;
+import cn.gdeng.nst.api.dto.order.SourceExamineDTO;
+import cn.gdeng.nst.api.dto.task.PushMsgDto;
+import cn.gdeng.nst.api.server.order.OrderInfoTransService;
+import cn.gdeng.nst.api.vo.order.OrderInfoTransAndSourceExamine;
+import cn.gdeng.nst.api.vo.order.OrderInfoTransVo;
+import cn.gdeng.nst.dao.BaseDao;
+import cn.gdeng.nst.entity.nst.MqError;
+import cn.gdeng.nst.entity.nst.OrderBeforeEntity;
+import cn.gdeng.nst.entity.nst.OrderInfoEntity;
+import cn.gdeng.nst.entity.nst.OrderInfoTransEntity;
+import cn.gdeng.nst.entity.nst.SourceShipperEntity;
+import cn.gdeng.nst.enums.MqConstants;
+import cn.gdeng.nst.enums.MsgCons;
+import cn.gdeng.nst.enums.OrderBeforeEnum;
+import cn.gdeng.nst.enums.OrderInfoStatusEnum;
+import cn.gdeng.nst.enums.OrderInfoTransCloseReasonEnum;
+import cn.gdeng.nst.enums.OrderInfoTransStatusEnum;
+import cn.gdeng.nst.enums.PushConstants;
+import cn.gdeng.nst.util.web.api.ApiResult;
+import cn.gdeng.nst.util.web.api.BizException;
+import cn.gdeng.nst.util.web.api.GSONUtils;
+import cn.gdeng.nst.util.web.api.SerializeUtil;
+
+import com.alibaba.dubbo.config.annotation.Service;
+import com.alibaba.fastjson.JSON;
+import com.aliyun.openservices.ons.api.Message;
+import com.aliyun.openservices.ons.api.bean.ProducerBean;
+
+/**
+ *  运单-物流信息接口实现类
+ * @author wjguo
+ *
+ * datetime:2016年12月5日 上午11:56:39
+ */
+@Service
+public class OrderInfoTransServiceImpl implements OrderInfoTransService {
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
+	
+	@Resource
+	private BaseDao<?> baseDao;
+	@Resource
+	private ProducerBean msgPushProducer;
+	
+
+	@Override
+	@Transactional
+	public ApiResult<Map<String, Object>> saveForPrePaymentSucc(String orderNo) throws BizException {
+		OrderInfoDTO orderInfoDTO = getOrderInfoByOrderNo(orderNo);
+		//因为已经成功支付完预付款，则物流状态为下一步：待验货。
+		Byte transStatus = OrderInfoTransStatusEnum.WAIT_EXAMINED_GOODS.getCode();
+		
+		//===1.更新orderInfo订单信息表的物流状态===   
+		updateOrderInfoMultiStatus(orderInfoDTO.getId(), null, transStatus, null);
+		//===2.新增订单-物流信息表的记录。===
+		Long transId = constractTransAndSave(orderInfoDTO, transStatus, null);
+		//===3.给物流公司推送消息===
+		pushMsgToLogisticsForPrePaymentSucc(orderInfoDTO);
+		//===4.给车主推送消息===
+		pushMsgToDriverForPrePaymentSucc(orderInfoDTO);
+		
+		//===5.组装返回结果===
+		Map<String, Object> resultMap = new HashMap<String, Object>(1);
+		resultMap.put("transId", transId);
+		ApiResult<Map<String, Object>> apiResult = new ApiResult<Map<String,Object>>();
+		apiResult.setResult(resultMap);
+		return apiResult;
+	}
+	
+	
+	/** 根据订单编号获取订单信息
+	 * @param orderNo
+	 * @return
+	 * @throws BizException 如果没有对应的订单信息，则抛出此异常。
+	 */
+	private OrderInfoDTO getOrderInfoByOrderNo(String orderNo) throws BizException {
+		Map<String, Object> paramMap = new HashMap<String, Object>(1);
+		paramMap.put("orderNo", orderNo);
+		OrderInfoDTO orderInfoDTO = baseDao.queryForObject("OrderInfo.getByOrderNo", paramMap, OrderInfoDTO.class);
+		if (orderInfoDTO == null) {
+			throw new BizException(MsgCons.C_23034, MsgCons.M_23034);
+		}
+		return orderInfoDTO;
+	}
+	
+	
+	/** 更新订单信息的多种状态
+	 * @param id 订单id
+	 * @param orderStatus 订单状态。如果不需要更新此状态，则传入null即可。
+	 * @param transStatus 物流状态。如果不需要更新此状态，则传入null即可。
+	 * @param closeReason 关闭原因。如果物流状态不属于关闭状态，则直接传入null即可。
+	 */
+	private void updateOrderInfoMultiStatus(Integer id, Byte orderStatus, Byte transStatus, Byte closeReason) {
+		OrderInfoEntity orderInfoEntity  = new OrderInfoEntity();
+		orderInfoEntity.setOrderStatus(orderStatus);
+		orderInfoEntity.setTransStatus(transStatus);
+		orderInfoEntity.setCloseReason(closeReason);
+		orderInfoEntity.setId(id);
+		orderInfoEntity.setUpdateTime(new Date());
+		baseDao.dynamicMerge(orderInfoEntity);
+	}
+	
+	/** 构造订单物流信息并保存
+	 * @param OrderInfoDTO 订单信息DTO
+	 * @param transStatus 物流状态
+	 * @param closeReason 关闭原因。如果物流状态不属于关闭状态，则直接传入null即可。
+	 * @return  保存的物流信息id
+	 */
+	private Long constractTransAndSave(OrderInfoDTO orderInfoDTO, Byte transStatus, Byte closeReason) {
+		OrderInfoTransEntity transEntity = constractTransBaseData(orderInfoDTO);
+		transEntity.setTransStatus(transStatus);
+		transEntity.setCloseReason(closeReason);
+		return  baseDao.persist(transEntity, Long.class);
+	}
+	
+	/** 构造订单-物流信息的基本数据
+	 * @param orderInfoDTO
+	 * @return
+	 */
+	private OrderInfoTransEntity constractTransBaseData(OrderInfoDTO orderInfoDTO) {
+		OrderInfoTransEntity transEntity = new OrderInfoTransEntity();
+		transEntity.setOrderInfoId(orderInfoDTO.getId());
+		transEntity.setOrderNo(orderInfoDTO.getOrderNo());
+		transEntity.setSourceId(orderInfoDTO.getSourceId());
+		transEntity.setIsDeleted((byte)0);
+		transEntity.setOperateTime(new Date());
+		transEntity.setCreateTime(new Date());
+		transEntity.setUpdateTime(new Date());
+		return transEntity;
+	}
+	
+	
+	/** 预付款支付成功后，推送消息给物流公司。
+	 * @param OrderInfoDTO 订单信息DTO
+	 * @throws BizException  
+	 * 
+	 */
+	private void pushMsgToLogisticsForPrePaymentSucc(OrderInfoDTO orderInfoDTO) throws BizException {
+		SourceShipperEntity shipperEntity = getSourceShipperById(orderInfoDTO.getSourceId());
+		PushMsgDto dto=new PushMsgDto();
+		dto.setBizId(orderInfoDTO.getId());
+		dto.setContent(MsgCons.M_28012);
+		dto.setMemberId(shipperEntity.getAssignMemberId());
+		dto.setMsgType(PushConstants.MSG_TYPE_5);
+		msgPush(dto);
+	}
+	
+	/** 根据id获取货源信息。
+	 * @param sourceId
+	 * @return
+	 * @throws BizException 如果没有对应的订单信息，则抛出此异常。
+	 */
+	private SourceShipperEntity getSourceShipperById(Integer sourceId) throws BizException {
+		SourceShipperEntity shipperParam = new SourceShipperEntity();
+		shipperParam.setId(sourceId);
+		SourceShipperEntity shipperResult = baseDao.find(SourceShipperEntity.class, shipperParam);
+		if (shipperResult == null) {
+			throw new BizException(MsgCons.C_24033, MsgCons.M_24033);
+		}
+		
+		return shipperResult;
+	}
+	
+	/** 预付款支付成功后，推送消息给物流公司。
+	 * @param OrderInfoDTO 订单信息DTO
+	 * 
+	 */
+	private void pushMsgToDriverForPrePaymentSucc(OrderInfoDTO orderInfoDTO) {
+		PushMsgDto dto = new PushMsgDto();
+		dto.setBizId(orderInfoDTO.getId());
+		dto.setContent(MsgCons.M_28013);
+		dto.setMemberId(orderInfoDTO.getDriverMemberId());
+		dto.setMsgType(PushConstants.MSG_TYPE_6);
+		msgPush(dto);
+	}
+	
+	private void msgPush(PushMsgDto dto) {
+		Message msg = new Message(msgPushProducer.getProperties().getProperty(MqConstants.TOPIC),MqConstants.TAG,SerializeUtil.serialize(dto));
+		msg.setKey(dto.getMemberId().toString());
+		try {
+			logger.info("MQ消息推送成功, 推送的数据为:{}", JSON.toJSONString(dto));
+			msgPushProducer.send(msg);
+		} catch (Exception e) {
+			logger.error("MQ消息推送失败", e);
+			//异常数据存入表 mq_error
+			this.insertMqError(dto, dto.getBizId(), MqConstants.TOPIC_PUSH);
+		}
+	}
+	
+	
+	/**
+	 * 异常数据存入表 mq_error
+	 * @param dto
+	 */
+	private void insertMqError(Object dto,Integer memberId,Integer topic){
+		MqError mqError = new MqError();
+		mqError.setBizType(MqConstants.BIZ_TYPE_1);
+		mqError.setTopic(topic);
+		mqError.setMemberId(memberId);
+		mqError.setContent(GSONUtils.toJson(dto,false));
+		mqError.setCreateUserId(1);
+		baseDao.execute("MqError.insert", mqError);
+	}
+
+
+
+	@Override
+	@Transactional
+	public ApiResult<Map<String, Object>> repealPrePaymentSucc(String orderNo) throws BizException {
+		OrderInfoDTO orderInfoDTO = getOrderInfoByOrderNo(orderNo);
+		
+		//===1.更新orderBefore预订单表的货源状态 为 已关闭=== 
+		updateSourceStatusForOrderBefore(orderInfoDTO.getOrderBeforeId(), OrderBeforeEnum.CLOSED.getCode());
+		
+		//===2.更新orderInfo订单信息表的订单状态和物流状态 为 已关闭=== 
+		Byte orderStatus = OrderInfoStatusEnum.CLOSED.getCode();
+		Byte transStatus = OrderInfoTransStatusEnum.CLOSE.getCode();
+		Byte transCloseReason = OrderInfoTransCloseReasonEnum.REPEAL_PRE_PAYMTEN.getCode();
+		updateOrderInfoMultiStatus(orderInfoDTO.getId(), orderStatus, transStatus, transCloseReason);
+		
+		//===3.新增订单-物流信息表的记录。===
+		Long transId = constractTransAndSave(orderInfoDTO, transStatus, transCloseReason);
+		
+		//===4.组装返回结果===
+		Map<String, Object> resultMap = new HashMap<String, Object>(1);
+		resultMap.put("transId", transId);
+		ApiResult<Map<String, Object>> apiResult = new ApiResult<Map<String,Object>>();
+		apiResult.setResult(resultMap);
+		return apiResult;
+	}
+
+
+
+	@Override
+	@Transactional
+	public ApiResult<Map<String, Object>> payFinalPaymentSuccHandler(String orderNo) throws BizException {
+		OrderInfoDTO orderInfoDTO = getOrderInfoByOrderNo(orderNo);
+		//===1.更新orderBefore预订单的运单状态===  ps:尾款支付后，订单就已经完成。
+		updateSourceStatusForOrderBefore(orderInfoDTO.getOrderBeforeId(), OrderBeforeEnum.COMPLETEORDER.getCode());
+		
+		//===2.更新orderInfo订单信息的运单状态=== 
+		updateOrderStatusForOrderInfo(orderInfoDTO.getId(), OrderInfoStatusEnum.GOODS_CONFIRM.getCode());
+		
+		//===3.给物流公司推送消息===
+		pushMsgToLogisticsForFinalPaymentSucc(orderInfoDTO);
+		
+		//===4.组装返回结果=== ps:目前无需要返回的数据，返回空集合，备后面扩展。
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		ApiResult<Map<String, Object>> apiResult = new ApiResult<Map<String,Object>>();
+		apiResult.setResult(resultMap);
+		return apiResult;
+	}
+	
+	
+	/** 更新预订单的货源状态
+	 * @param id 预订单id
+	 * @param sourceStatus 货源状态
+	 */
+	private void updateSourceStatusForOrderBefore(Integer id, Byte sourceStatus) {
+		OrderBeforeEntity orderBeforeEntity  = new OrderBeforeEntity();
+		orderBeforeEntity.setSourceStatus(sourceStatus);
+		orderBeforeEntity.setId(id);
+		orderBeforeEntity.setUpdateTime(new Date());
+		baseDao.dynamicMerge(orderBeforeEntity);
+	}
+	
+	
+	/** 更新订单信息的订单状态
+	 * @param id 订单id
+	 * @param orderStatus 订单状态
+	 */
+	private void updateOrderStatusForOrderInfo(Integer id, Byte orderStatus) {
+		OrderInfoEntity orderInfoEntity  = new OrderInfoEntity();
+		orderInfoEntity.setOrderStatus(orderStatus);
+		orderInfoEntity.setId(id);
+		orderInfoEntity.setUpdateTime(new Date());
+		baseDao.dynamicMerge(orderInfoEntity);
+	}
+	
+	/** 尾款支付成功后，推送消息给物流公司。
+	 * @param OrderInfoDTO 订单信息DTO
+	 * @throws BizException 
+	 * 
+	 */
+	private void pushMsgToLogisticsForFinalPaymentSucc(OrderInfoDTO orderInfoDTO) throws BizException {
+		SourceShipperEntity shipperEntity = getSourceShipperById(orderInfoDTO.getSourceId());
+		PushMsgDto dto=new PushMsgDto();
+		dto.setBizId(orderInfoDTO.getId());
+		dto.setContent(MsgCons.M_28014);
+		dto.setMemberId(shipperEntity.getAssignMemberId());
+		dto.setMsgType(PushConstants.MSG_TYPE_7);
+		msgPush(dto);
+	}
+    
+	
+	/**
+	 * 物流信息 加验货信息
+	 * @param orderNo
+	 * @throws BizException 
+	 */
+	@Override
+	public ApiResult<OrderInfoTransAndSourceExamine> queryOrderInfoTransAndSourceExamine(Map<String, Object>  map)
+			throws BizException {
+		OrderInfoTransAndSourceExamine vo=new OrderInfoTransAndSourceExamine();
+		SourceExamineDTO dto=baseDao.queryForObject("SourceExamine.queryByCondition", map, SourceExamineDTO.class);
+		vo=baseDao.queryForObject("OrderInfoTrans.ContactsInfo",map,OrderInfoTransAndSourceExamine.class);
+		List<OrderInfoTransDTO> list=baseDao.queryForList("OrderInfoTrans.queryByCondition",map,OrderInfoTransDTO.class);
+		vo.setOrderInfoTransList(list);
+		vo.setSourceExamineDTO(dto);
+		ApiResult<OrderInfoTransAndSourceExamine> apiResult = new ApiResult<OrderInfoTransAndSourceExamine>(vo,MsgCons.C_10000,MsgCons.M_10000);
+		return apiResult;
+	}
+
+
+	/**
+	 * 物流信息
+	 * @param orderNo
+	 * @throws BizException 
+	 */
+	@Override
+	public ApiResult<List<OrderInfoTransVo>> queryOrderInfoTrans(
+			Map<String, Object>  map) throws BizException {
+		List<OrderInfoTransVo> list=baseDao.queryForList("OrderInfoTrans.queryByCondition",map,OrderInfoTransVo.class);
+		ApiResult<List<OrderInfoTransVo>>  apiResult = new ApiResult<List<OrderInfoTransVo>>(list,MsgCons.C_10000,MsgCons.M_10000);
+		return apiResult;
+	}
+
+
+
+	@Override
+	@Transactional
+	public ApiResult<Map<String, Object>> scanPrePaymtenOverdueAndHandler() throws BizException {
+		ApiResult<Map<String, Object>> apiReult = new ApiResult<Map<String,Object>>();
+		Map<String, Object> resultMap= new HashMap<String, Object>();
+		apiReult.setResult(resultMap);
+		
+		//===1.查询支付预付款过期的订单信息===
+		List<OrderInfoDTO> orderInfos = baseDao.queryForList("OrderInfo.queryPrePaymtenOverdue", null, OrderInfoDTO.class);
+		int originalOrderInfoCouont = orderInfos.size();
+		resultMap.put("record", originalOrderInfoCouont);
+		if (originalOrderInfoCouont == 0) {
+			return apiReult;
+		}
+		
+		//===2.更新预订单状态====
+		List<Integer> orderBeforeIds = new ArrayList<Integer>(originalOrderInfoCouont);
+		for (OrderInfoDTO orderInfo : orderInfos) {
+			orderBeforeIds.add(orderInfo.getOrderBeforeId());
+		}
+		updateOrderBeforeSourceStatusByIds(orderBeforeIds, OrderBeforeEnum.CLOSED.getCode());
+		
+		//===3.更新订单信息状态====
+		List<Integer> orderIds = new ArrayList<Integer>(originalOrderInfoCouont);
+		for (OrderInfoDTO orderInfo : orderInfos) {
+			orderIds.add(orderInfo.getId());
+		}
+		Byte orderStatus = OrderInfoStatusEnum.CLOSED.getCode();
+		Byte transStatus = OrderInfoTransStatusEnum.CLOSE.getCode();
+		Byte transCloseReason = OrderInfoTransCloseReasonEnum.PRE_PAYMENT_OVERDUE.getCode();
+		updateOrderInfoMultiStatusByIds(orderIds, orderStatus, transStatus, transCloseReason);
+
+		//===4.添加物流信息记录====
+		constructTransAndBatchSave(orderInfos, transStatus, transCloseReason);
+		
+		return apiReult;
+	}
+	
+
+	
+	/** 根据id集合更新预订单货源状态
+	 * @param ids id集合
+	 * @param sourceStatus 更新的状态
+	 * @return 影响的行数
+	 * @throws BizException  如果更新的数量和id数量不一致，则抛出此异常。
+	 */
+	private int updateOrderBeforeSourceStatusByIds(List<Integer> ids, Byte sourceStatus) throws BizException {
+		Map<String, Object> updateParam = new HashMap<String, Object>();
+		updateParam.put("ids", ids);
+		updateParam.put("updateUserId", "system");
+		updateParam.put("sourceStatus", sourceStatus);
+		int updateCount =  baseDao.execute("OrderBefore.updateSourceStatusByIds", updateParam);
+		
+		//如果更新数量的判断
+		if (ids.size() != updateCount) {
+			throw new BizException(MsgCons.C_24034, MsgCons.M_24014);
+		}
+		
+		return updateCount;
+	}
+	
+	
+	/** 根据id集合更新订单信息多种状态
+	 * @param ids id集合
+	 * @param orderStatus 运单状态
+	 * @param transStatus 物流状态
+	 * @param transCloseReason 物流状态为已关闭时的原因。如果物流状态不是已关闭，则传null。
+	 * @return 影响的行数
+	 * @throws BizException  如果更新的数量和id数量不一致，则抛出此异常。
+	 */
+	private int updateOrderInfoMultiStatusByIds(List<Integer> ids, Byte orderStatus, 
+			Byte transStatus, Byte transCloseReason) throws BizException {
+		Map<String, Object> updateParam = new HashMap<String, Object>();
+		updateParam.put("ids", ids);
+		updateParam.put("orderStatus", orderStatus);
+		updateParam.put("transStatus", transStatus);
+		updateParam.put("closeReason", transCloseReason);
+		updateParam.put("updateUserId", "system");
+		int updateCount =  baseDao.execute("OrderInfo.updateMultiStatusByIds", updateParam);
+		
+		//如果更新数量的判断
+		if (ids.size() != updateCount) {
+			throw new BizException(MsgCons.C_24034, MsgCons.M_24014);
+		}
+		
+		return updateCount;
+	}
+	
+	/** 构造物流信息并批量保存
+	 * @param orderInfos 订单信息集合
+	 * @param transStatus 物流状态
+	 * @param transCloseReason 物流状态为已关闭时的原因。如果物流状态不是已关闭，则传null。
+	 */
+	@SuppressWarnings("unchecked")
+	private void constructTransAndBatchSave(List<OrderInfoDTO> orderInfos, Byte transStatus,
+			Byte transCloseReason){
+		int len = orderInfos.size();
+		Map<String, Object>[] saveTransParams = new Map[len];
+		Date operateTime = new Date();
+		String createUserId = "system";
+		Byte transReason = OrderInfoTransCloseReasonEnum.REPEAL_PRE_PAYMTEN.getCode();
+		for (int i = 0 ; i < len; i++) {
+			Map<String, Object> param = new HashMap<String, Object>();
+			param.put("sourceId", orderInfos.get(i).getSourceId());
+			param.put("orderInfoId", orderInfos.get(i).getId());
+			param.put("orderNo", orderInfos.get(i).getOrderNo());
+			param.put("transStatus", transStatus);
+			param.put("closeReason", transReason);
+			param.put("operateTime", operateTime);
+			param.put("createUserId", createUserId);
+			saveTransParams[i] = param;
+		}
+		baseDao.batchUpdate("OrderInfoTrans.basicInsert", saveTransParams);
+	}
+	
+
+}

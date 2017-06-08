@@ -1,0 +1,11 @@
+package cn.gdeng.nst.admin.service.admin;
+
+import java.util.List;
+import java.util.Map;
+import cn.gdeng.nst.admin.dto.admin.AdminSourceAssignHisDTO;
+import cn.gdeng.nst.util.web.api.ApiResult;
+
+public interface SourceAssignHisService {
+
+	ApiResult<List<AdminSourceAssignHisDTO>> queryList(Map<String, Object> paramMap);
+}

@@ -1,0 +1,100 @@
+package cn.gdeng.nst.server.pub.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.alibaba.dubbo.config.annotation.Service;
+
+import cn.gdeng.nst.api.dto.redis.AreaDTO;
+import cn.gdeng.nst.dao.BaseDao;
+import cn.gdeng.nst.enums.MsgCons;
+import cn.gdeng.nst.pub.service.AreaService;
+import cn.gdeng.nst.util.server.bo.CacheBo;
+import cn.gdeng.nst.util.web.api.ApiResult;
+
+/**
+ * 区域表实现
+ * 
+ * @author xiaojun
+ */
+@Service
+public class AreaServiceImpl implements AreaService {
+
+	@Autowired
+	private BaseDao<?> baseDao;
+	@Autowired
+	private CacheBo cacheBo;
+
+	@Override
+	public ApiResult<Map<String, List<AreaDTO>>> listTopArea() throws Exception {
+		Map<String, List<AreaDTO>> map=new HashMap<>();
+		map.put("directlyCity",listTopDirectlyCity());
+		map.put("region",listTopRegion());
+		map.put("province",listTopProvince());
+		return new ApiResult<Map<String,List<AreaDTO>>>(map, MsgCons.C_10000, MsgCons.M_10000);
+	}
+
+	@Override
+	public ApiResult<AreaDTO> getAreaById(String areaID) throws Exception {
+		AreaDTO areaDto=cacheBo.getAreaById(areaID, baseDao);
+		ApiResult<AreaDTO> result=new ApiResult<AreaDTO>(areaDto, MsgCons.C_10000, MsgCons.M_10000);
+		return result;
+	}
+	
+	@Override
+	public ApiResult<AreaDTO> getAreaByName(String area) throws Exception {
+		AreaDTO areaDto=cacheBo.getAreaByName(area, baseDao);
+		ApiResult<AreaDTO> result=new ApiResult<AreaDTO>(areaDto, MsgCons.C_10000, MsgCons.M_10000);
+		return result;
+	}
+
+	@Override
+	public ApiResult<AreaDTO> getAreaByName(String area, Boolean isProvince) throws Exception {
+		AreaDTO areaDto=cacheBo.getAreaByName(area, isProvince, baseDao);
+		ApiResult<AreaDTO> result=new ApiResult<AreaDTO>(areaDto, MsgCons.C_10000, MsgCons.M_10000);
+		return result;
+	}
+
+	@Override
+	public ApiResult<List<AreaDTO>> listChildArea(String id) throws Exception {
+		List<AreaDTO> list = cacheBo.listChildArea(id,baseDao);
+		ApiResult<List<AreaDTO>> result = new ApiResult<List<AreaDTO>>(list, MsgCons.C_10000, MsgCons.M_10000);
+		return result;
+	}
+
+	@Override
+	public ApiResult<List<AreaDTO>> getAreaChildTree(String father) throws Exception {
+		List<AreaDTO> list = cacheBo.getAreaChildTree(father, baseDao);
+		ApiResult<List<AreaDTO>> result = new ApiResult<List<AreaDTO>>(list, MsgCons.C_10000, MsgCons.M_10000);
+		return result;
+	}
+
+	@Override
+	public ApiResult<List<AreaDTO>> getAllProvinceCity() throws Exception {
+		List<AreaDTO> list = cacheBo.getAllProvinceCity(baseDao);
+		ApiResult<List<AreaDTO>> result = new ApiResult<List<AreaDTO>>(list, MsgCons.C_10000, MsgCons.M_10000);
+		return result;
+	}
+
+	@Override
+	public List<AreaDTO> listTopDirectlyCity() throws Exception {
+		// TODO Auto-generated method stub
+		return cacheBo.listTopDirectlyCity(baseDao);
+	}
+
+	@Override
+	public List<AreaDTO> listTopRegion() throws Exception {
+		// TODO Auto-generated method stub
+		return cacheBo.listTopRegion(baseDao);
+	}
+
+	@Override
+	public List<AreaDTO> listTopProvince() throws Exception {
+		// TODO Auto-generated method stub
+		return cacheBo.listTopProvince(baseDao);
+	}
+
+}

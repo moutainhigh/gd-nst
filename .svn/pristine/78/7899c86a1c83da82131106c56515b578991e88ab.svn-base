@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="MemberCerAudit">
+     <sql id="save">
+         <![CDATA[
+             INSERT INTO member_cer_audit
+	            (`cerId`,`auditOpinion`,`cerStatus`,`createUserId`,`createTime`,`updateUserId`,`updateTime`)
+			 VALUES
+			    ('cerId','auditOpinion','cerStatus','createUserId','createTime','updateUserId','updateTime')
+		 ]]>
+      </sql>
+      
+      <sql id="count">
+	    <![CDATA[
+	         SELECT COUNT(1) FROM member_cer_audit WHERE cerId=:cerId
+	    ]]>
+	  </sql>
+	  
+	   <sql id="findByPage">
+	    <![CDATA[
+	         SELECT * FROM member_cer_audit WHERE cerId=:cerId ORDER BY id DESC LIMIT :startRow,:endRow 
+	    ]]>
+	  </sql>
+</sqlMap>

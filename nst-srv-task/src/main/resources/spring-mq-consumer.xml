@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/context  
+    http://www.springframework.org/schema/context/spring-context.xsd">
+    
+         <!-- 定时消息消费者定义 -->
+        <bean id="taskListener" class="cn.gdeng.nst.server.mq.task.TaskListener"></bean>
+        <bean id="taskConsumer" class="com.aliyun.openservices.ons.api.bean.ConsumerBean" init-method="start" destroy-method="shutdown">
+            <property name="properties" >
+                <props>
+                    <prop key="ConsumerId">${maven.mq.Task.ConsumerId}</prop>
+                    <prop key="AccessKey">${maven.mq.AccessKey}</prop>
+                    <prop key="SecretKey">${maven.mq.SecretKey}</prop>
+                    <prop key="ConsumeThreadNums">1</prop>
+                </props>
+            </property>
+            <property name="subscriptionTable">
+                <map>
+                    <entry value-ref="taskListener">
+                        <key>
+                            <bean class="com.aliyun.openservices.ons.api.bean.Subscription">
+                                <property name="topic" value="${maven.mq.Task.Topic}"/>
+                                <property name="expression" value="*"/>
+                            </bean>
+                        </key>
+                    </entry>
+                </map>
+            </property>
+        </bean>
+
+        <bean id="pushListener" class="cn.gdeng.nst.server.mq.push.PushListener">
+        	<property name="properties" >
+                <props>
+                	<prop key="production_mode">${maven.mq.ProductionMode}</prop>
+                    <prop key="android_key_1">${maven.push.android.shipper.key}</prop>
+                    <prop key="android_secret_1">${maven.push.android.shipper.secret}</prop>
+                    <prop key="android_key_2">${maven.push.android.driver.key}</prop>
+                    <prop key="android_secret_2">${maven.push.android.driver.secret}</prop>
+                    <prop key="android_key_3">${maven.push.android.logistics.key}</prop>
+                    <prop key="android_secret_3">${maven.push.android.logistics.secret}</prop>                    
+                    <prop key="ios_key_1">${maven.push.ios.shipper.key}</prop>
+                    <prop key="ios_secret_1">${maven.push.ios.shipper.secret}</prop>
+                    <prop key="ios_key_2">${maven.push.ios.driver.key}</prop>
+                    <prop key="ios_secret_2">${maven.push.ios.driver.secret}</prop>
+                    <prop key="ios_key_3">${maven.push.ios.logistics.key}</prop>
+                    <prop key="ios_secret_3">${maven.push.ios.logistics.secret}</prop>
+                </props>
+            </property>
+        </bean>
+        <bean id="pushConsumer" class="com.aliyun.openservices.ons.api.bean.ConsumerBean" init-method="start" destroy-method="shutdown">
+            <property name="properties" > <!--消费者配置信息-->
+                <props>
+                    <prop key="ConsumerId">${maven.mq.MsgPush.ConsumerId}</prop>
+                    <prop key="AccessKey">${maven.mq.AccessKey}</prop>
+                    <prop key="SecretKey">${maven.mq.SecretKey}</prop>
+                    <!--将消费者线程数固定为50个-->
+                    <prop key="ConsumeThreadNums">1</prop>
+                </props>
+            </property>
+            <property name="subscriptionTable">
+                <map>
+                    <entry value-ref="pushListener">
+                        <key>
+                            <bean class="com.aliyun.openservices.ons.api.bean.Subscription">
+                                <property name="topic" value="${maven.mq.MsgPush.Topic}"/>
+                                <property name="expression" value="*"/>
+                            </bean>
+                        </key>
+                    </entry>
+                    <!--更多的订阅添加entry节点即可-->
+                </map>
+            </property>
+        </bean>
+        
+    </beans>

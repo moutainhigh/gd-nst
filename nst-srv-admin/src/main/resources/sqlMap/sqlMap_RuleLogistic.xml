@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="ruleLogistic">
+ 	
+ 	<sql id="getMemberInfoByRuleId"> 
+ 	<![CDATA[ 
+         SELECT
+			 rl.memberId as id,
+			 rl.ruleInfoId,
+			 CASE 
+			   WHEN rl.memberType=2 THEN '车主'
+			   WHEN rl.memberType=3 THEN '物流公司'
+			   END as memberTypeStr,
+			 rl.memberType,
+			 rl.level,
+			 rl.totalLimt,
+			 rl.dayLimt,
+			 rl.startTime,
+			 rl.endTime,
+			 rl.dayCount,
+			 rl.totalCount,
+			CASE 
+			 WHEN rl.memberType=2 THEN m.mobile
+			 WHEN rl.memberType=3 THEN (SELECT mi.mobile FROM member_cer LEFT JOIN member_info mi on (mi.id=memberId)  WHERE memberId=rl.memberId  and userType=1 )  
+			END as mobile,
+			CASE 
+			 WHEN rl.memberType=2 THEN m.userName
+			 WHEN rl.memberType=3 THEN (SELECT companyName FROM member_cer WHERE memberId=rl.memberId  and userType=1 )  
+			END as userName
+					from rule_logistic rl  
+			LEFT JOIN member_info m on m.id=rl.memberId
+		WHERE rl.ruleInfoId = :id
+ 		]]> 
+ 	</sql> 
+ 	
+ 	
+ 	<sql id="queryRuleLogisticByRuleIdPage"> 
+ 	<![CDATA[ 
+        select 
+	        r.id,
+	        r.ruleInfoId,
+	        r.memberType,
+	        r.level,
+	        r.dayCount,
+	        r.dayLimt,
+	        r.totalCount 
+        from rule_logistic  r 
+		WHERE r.ruleInfoId = :id
+		LIMIT :startRow,:endRow
+ 		]]> 
+ 	</sql> 
+ 	
+ 	
+ 	<sql id="queryRuleLogisticByRuleIdTotal"> 
+ 	<![CDATA[ 
+         SELECT
+			count(1)
+		 from rule_logistic  r 
+		WHERE r.ruleInfoId = :id
+ 		]]> 
+ 	</sql> 
+ 	
+ 	<sql id="insertBatch"> 
+ 	<![CDATA[ 
+         insert into
+			rule_logistic(
+			ruleInfoId, 
+			memberId, 
+			createUserId,
+			 createTime, 
+			 level,
+			 memberType,
+			 dayLimt,
+			 assginLevel,
+			 totalLimt,
+			 startTime,
+			 endTime,
+			 onOff)
+		values(
+			:ruleInfoId,
+			:memberId,
+			:createUserId,
+			SYSDATE(),
+			:level,
+			:memberType,
+			:dayLimt,
+			:assginLevel,
+			:totalLimt,
+			:startTime,
+			:endTime,
+			:onOff
+		)
+ 		]]> 
+ 	</sql> 
+ 	
+ 	<sql id="updateBatch"> 
+ 	<![CDATA[ 
+         UPDATE  rule_logistic
+         SET
+			 level = :level,
+	         updateUserId = :updateUserId,
+	         totalLimt = :totalLimt,
+	         dayLimt = :dayLimt,
+	         memberType = :memberType,
+	         startTime = :startTime,
+	         endTime = :endTime,
+	         updateTime=SYSDATE()
+		 WHERE ruleInfoId = :ruleInfoId AND memberId = :memberId
+ 		]]> 
+ 	</sql> 
+ 	
+ 	<sql id="deleteBatch">
+ 	<![CDATA[ 
+ 		delete from
+ 			rule_logistic 
+ 		WHERE 
+ 			memberId = :memberId and ruleInfoId = :ruleInfoId
+ 	]]>
+ 	</sql>
+ 	
+ 	<sql id="getCompanyByPage"> 
+ 	<![CDATA[ 
+		select
+		    z.memberId as id,z.companyName,z.createTime,
+		    mi.mobile,mi.status,mi.cerPersonalStatus,mi.cerCompanyStatus,mi.regetype,ro.provinceId,ro.cityId,ro.areaId,ro.detail
+		from
+		    (
+		        select
+		            mc.memberId,mc.companyName,mc.createTime
+		        from
+		            member_cer mc
+		        where
+		            mc.companyName is not NULL and mc.cerStatus=1
+		        group by
+		            mc.memberId
+		    ) z
+		LEFT JOIN rule_onoff ro ON z.memberId = ro.memberId
+		LEFT JOIN member_info mi on z.memberId = mi.id
+		where 1=1 
+		<#if userName?exists && userName!="">
+		and  z.companyName like "%":userName"%"
+		</#if>
+		<#if mobile?exists && mobile!="">
+		and  mi.mobile   like "%":mobile"%"
+		</#if>
+		<#if sProvinceId?exists && sProvinceId!="">
+		and  ro.provinceId=:sProvinceId
+		</#if>
+		<#if sCityId?exists && sCityId!="">
+		and  ro.cityId=:sCityId
+		</#if>
+		<#if sAreaId?exists && sAreaId!="">
+		and  ro.areaId=:sAreaId
+		</#if>
+		order by z.createTime
+	    LIMIT :startRow,:endRow
+ 	]]>
+	</sql>
+
+	<sql id="getCompanyTotal"> 
+ 	<![CDATA[ 
+		select
+		    count(1)
+		from
+		    (
+		        select
+		            mc.memberId,mc.companyName,mc.createTime
+		        from
+		            member_cer mc
+		        where
+		            mc.companyName is not NULL and mc.cerStatus=1
+		        group by
+		            mc.memberId
+		    ) z
+		LEFT JOIN rule_onoff ro ON z.memberId = ro.memberId
+		LEFT JOIN member_info mi on z.memberId = mi.id
+		where 1=1         
+		<#if userName?exists && userName!="">
+		and  z.companyName like "%":userName"%"
+		</#if>
+		<#if mobile?exists && mobile!="">
+		and  mi.mobile   like "%":mobile"%"
+		</#if>
+		<#if sProvinceId?exists && sProvinceId!="">
+		and  ro.provinceId=:sProvinceId
+		</#if>
+		<#if sCityId?exists && sCityId!="">
+		and  ro.cityId=:sCityId
+		</#if>
+		<#if sAreaId?exists && sAreaId!="">
+		and  ro.areaId=:sAreaId
+		</#if>
+ 	]]>
+	</sql>
+	
+	<sql id="updateOnOffBatch"> 
+ 	<![CDATA[ 
+         UPDATE  rule_logistic
+         SET
+			 onOff = :onOff
+		 WHERE ruleInfoId=:id
+ 		]]> 
+ 	</sql> 
+	
+	<sql id="getMaxAssginLevel"> 
+ 	<![CDATA[ 
+       select IFNULL(MAX(assginLevel),0)  from rule_logistic 
+ 		]]> 
+ 	</sql> 
+ 	
+ 	<sql id="getMemberInfoByRuleIdPage"> 
+ 	<![CDATA[ 
+         SELECT
+			 rl.memberId as id,
+			 rl.ruleInfoId,
+			 CASE 
+			   WHEN rl.memberType=2 THEN '车主'
+			   WHEN rl.memberType=3 THEN '物流公司'
+			   END as memberTypeStr,
+			 rl.memberType,
+			 rl.level,
+			 rl.totalLimt,
+			 rl.dayLimt,
+			 rl.startTime,
+			 rl.endTime,
+			 rl.dayCount,
+			 rl.totalCount,
+			CASE 
+			 WHEN rl.memberType=2 THEN m.mobile
+			 WHEN rl.memberType=3 THEN (SELECT mi.mobile FROM member_cer LEFT JOIN member_info mi on (mi.id=memberId)  WHERE memberId=rl.memberId  and userType=1 )  
+			END as mobile,
+			CASE 
+			 WHEN rl.memberType=2 THEN m.userName
+			 WHEN rl.memberType=3 THEN (SELECT companyName FROM member_cer WHERE memberId=rl.memberId  and userType=1 )  
+			END as userName
+					from rule_logistic rl  
+			LEFT JOIN member_info m on m.id=rl.memberId
+		WHERE rl.ruleInfoId = :id
+		LIMIT :startRow,:endRow
+ 		]]> 
+ 	</sql> 
+	
+</sqlMap>

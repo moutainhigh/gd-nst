@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    
+    <!--接受订单统计生产者-->
+    <bean id="countProducer" class="com.aliyun.openservices.ons.api.bean.ProducerBean" init-method="start" destroy-method="shutdown">
+        <property name="properties" >
+            <props>
+                <prop key="ProducerId">PID_dev_nst_order_info</prop> 
+                <prop key="AccessKey">FmQ1FZSfeGcLxl13</prop>
+                <prop key="SecretKey">t3QfuZjugirBJraeD8TIz1G5cpTfUY</prop>
+                <prop key="Topic">dev_nst_order_info</prop>
+            </props>
+        </property>
+    </bean>
+    
+     <bean id="appProducer" class="com.aliyun.openservices.ons.api.bean.ProducerBean" init-method="start" destroy-method="shutdown">
+        <property name="properties" >
+            <props>
+                <prop key="ProducerId">PID_dev_nst_msg_push</prop> 
+                <prop key="AccessKey">FmQ1FZSfeGcLxl13</prop>
+                <prop key="SecretKey">t3QfuZjugirBJraeD8TIz1G5cpTfUY</prop>
+                <prop key="Topic">dev_nst_msg_push</prop>
+            </props>
+        </property>
+    </bean>
+    
+    
+     <!--订单10分钟不操作推送    生产者-->
+    <bean id="taskProducer" class="com.aliyun.openservices.ons.api.bean.ProducerBean" init-method="start" destroy-method="shutdown">
+        <property name="properties" >
+            <props>
+                <prop key="ProducerId">PID_dev_nst_task</prop> 
+                <prop key="AccessKey">FmQ1FZSfeGcLxl13</prop>
+                <prop key="SecretKey">t3QfuZjugirBJraeD8TIz1G5cpTfUY</prop>
+                <prop key="Topic">dev_nst_task</prop>
+            </props>
+        </property>
+    </bean>
+    
+    <!--费用支付成功,推送消息-->
+    <bean id="msgPushProducer" class="com.aliyun.openservices.ons.api.bean.ProducerBean" init-method="start" destroy-method="shutdown" >
+        <property name="properties" >
+            <props>
+                <prop key="ProducerId">PID_dev_nst_msg_push</prop> 
+                <prop key="AccessKey">FmQ1FZSfeGcLxl13</prop>
+                <prop key="SecretKey">t3QfuZjugirBJraeD8TIz1G5cpTfUY</prop>
+                <prop key="Topic">dev_nst_msg_push</prop>
+            </props>
+        </property>
+    </bean>
+    
+</beans>

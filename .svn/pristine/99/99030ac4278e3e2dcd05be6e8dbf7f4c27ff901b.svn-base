@@ -1,0 +1,21 @@
+package cn.gdeng.nst.api.server.member;
+
+import java.util.Map;
+
+import cn.gdeng.nst.api.vo.member.MemberInfoVo;
+import cn.gdeng.nst.entity.nst.MemberInfoEntity;
+import cn.gdeng.nst.util.web.api.ApiResult;
+
+
+public interface MemberInfoApiService {
+   
+    public ApiResult<MemberInfoVo> findMember(Map<String,Object> map);
+     
+    public ApiResult<Integer> updateByMap(Map<String,Object> map);
+     
+    public ApiResult<MemberInfoEntity> getById(Integer id); 
+    
+    public ApiResult<Map<String,Object>> findCarMember(Map<String,Object> map);
+    
+    public ApiResult<Map<String,Object>> checkMemberOrCar(Map<String,Object> map);
+}

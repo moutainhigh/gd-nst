@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="MembercerApi">
+     <sql id="countByMemberId">
+         <![CDATA[
+              SELECT count(1) FROM `member_cer` mc WHERE mc.`memberId`=:memberId AND mc.`userType`=:userType
+         ]]>
+     </sql>
+    
+     <sql id="findByMemberId">
+         <![CDATA[
+              SELECT mc.`id` AS cerId,mr.id AS carId,mr.carNumber,mc.`realName`,mc.`companyName`,mc.`idCard`,mc.`idCardUrl_z`,
+              mc.`idCardUrl_f`,mc.`doorUrl`,mc.`visitingCardUrl`,
+			  mc.`bzlUrl`,mc.groupCardUrl,mr.vehicleUrl,mr.`carHeadUrl`,mr.`carRearUrl`,mc.cerStatus,mc.`auditOpinion`
+			  FROM `member_cer` mc LEFT JOIN `member_car` mr ON mc.memberCarId=mr.`id`
+              WHERE mc.`memberId`=:memberId AND mc.`userType`=:userType
+         ]]>
+     </sql>
+     
+     <sql id="save">
+         <![CDATA[
+             INSERT INTO member_cer (`memberId`,memberCarId,`realName`,`userType`,certificFrom,`companyName`,
+	             `idCard`,`idCardUrl_z`,`idCardUrl_f`,`doorUrl`,`visitingCardUrl`,
+	             `bzlUrl`,`groupCardUrl`,`cerStatus`,`createUserId`)
+             VALUES (:memberId,:memberCarId,:realName,:userType,:certificFrom,:companyName,:idCard,:idCardUrl_z,
+                 :idCardUrl_f,:doorUrl,:visitingCardUrl,:bzlUrl,:groupCardUrl,:cerStatus,:memberId)
+         ]]>
+     </sql>
+     
+     <sql id="update">
+         <![CDATA[
+             UPDATE member_cer
+			 SET 
+			   memberCarId = :memberCarId,
+			  `realName` = :realName,
+			  certificFrom = :certificFrom,
+			  `companyName` = :companyName,
+			  `idCard` = :idCard,
+			  `idCardUrl_z` = :idCardUrl_z,
+			  `idCardUrl_f` = :idCardUrl_f,
+			  `doorUrl` = :doorUrl,
+			  `visitingCardUrl` = :visitingCardUrl,
+			  `bzlUrl` = :bzlUrl,
+			  `groupCardUrl` = :groupCardUrl,
+			  `cerStatus` = :cerStatus,
+			  `auditor` = null,
+              `auditTime` = null,
+			  `updateUserId` = :memberId,
+              `updateTime` = NOW()
+			WHERE `memberId` = :memberId
+         ]]>
+     </sql>
+</sqlMap>

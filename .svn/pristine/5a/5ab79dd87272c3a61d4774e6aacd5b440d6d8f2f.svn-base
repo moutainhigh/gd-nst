@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sqlMap namespace="CarOwnerSource">
+
+	    <sql id="countBySourceAssignHis">
+			<![CDATA[
+				SELECT COUNT(1) FROM source_assign_his sah
+				LEFT JOIN source_shipper ss ON sah.sourceId = ss.id
+				LEFT JOIN member_delete md ON md.businessId=sah.id and md.deleteType=1 and md.appType=2
+				WHERE sah.assignMemberId =:memberId AND sah.memberType=:memberType AND sah.status=:status
+			 AND (md.isDeleted =0 OR md.isDeleted  IS NULL )
+			]]>
+		</sql>
+
+		<sql id="queryBySourceAssignHis">
+			<![CDATA[
+				SELECT
+					sah.id,sah.sourceId,ss.shipperName,mi.iconUrl,mi.cerPersonalStatus,ss.mileage,ss.goodsType,ss.goodsName,ss.totalWeight,ss.totalSize,ss.carLength,ss.carType,
+					IF(sah.status = 1,sah.createTime,sah.updateTime) createTime, sah.status, sah.assignMemberId,
+					ss.s_detail AS sourceSDetail, ss.s_detailed_address AS sourceSDetailAddr, ss.e_detail AS sourceEDetail, ss.e_detailed_address AS sourceEDetailAddr, 
+					ss.sendDate AS sourceSendDate, ss.version AS sourceVersion, ss.shipperMobile, NOW() AS currentDate,
+			    CASE 
+					WHEN sah.status = 1 THEN '待处理' 
+					WHEN sah.status = 2 THEN '已接单' 
+					WHEN sah.status = 3 THEN '已拒绝' 
+					WHEN sah.status = 4 THEN '已超时' 
+			    END AS assginStatusName FROM source_assign_his sah LEFT JOIN source_shipper ss ON sah.sourceId = ss.id
+				LEFT JOIN member_info mi ON ss.memberId = mi.id
+				LEFT JOIN member_delete md ON md.businessId=sah.id and md.deleteType=1 and md.appType=2
+				WHERE sah.assignMemberId =:memberId AND sah.memberType=:memberType 
+				AND sah.status=:status 
+				 AND (md.isDeleted =0 OR md.isDeleted  IS NULL )
+				ORDER BY sah.createTime DESC LIMIT :startRow,:endRow
+		    ]]>
+		</sql>
+
+       <sql id="countByOrderBefore">
+			<![CDATA[				
+				SELECT COUNT(1) FROM source_assign_his sah LEFT JOIN source_shipper ss ON sah.sourceId = ss.id 
+				LEFT JOIN order_before ob ON ob.`sourceId`=ss.`id`
+				LEFT JOIN member_delete md ON md.businessId=sah.id and md.deleteType=1 and md.appType=2
+				WHERE sah.assignMemberId =:memberId AND sah.memberType=:memberType AND sah.status=:status 
+				 AND (md.isDeleted =0 OR md.isDeleted  IS NULL )
+			]]>
+		</sql>
+
+		<sql id="queryByOrderBefore">
+			<![CDATA[
+				SELECT
+					sah.id,sah.sourceId,ob.id AS beforeId,ss.shipperName,mi.iconUrl,mi.cerPersonalStatus,ss.mileage,ss.goodsType,ss.goodsName,ss.totalWeight,ss.totalSize,ss.carLength,ss.carType,
+					IF(sah.status = 1,sah.createTime,sah.updateTime) createTime, sah.status, sah.assignMemberId,
+					ss.s_detail AS sourceSDetail, ss.s_detailed_address AS sourceSDetailAddr, ss.e_detail AS sourceEDetail, ss.e_detailed_address AS sourceEDetailAddr, 
+					ss.sendDate AS sourceSendDate, ss.version AS sourceVersion, ss.shipperMobile, NOW() AS currentDate,
+			    CASE 
+					WHEN sah.status = 1 THEN '待处理' 
+					WHEN sah.status = 2 THEN '已接单' 
+					WHEN sah.status = 3 THEN '已拒绝' 
+					WHEN sah.status = 4 THEN '已超时' 
+			    END AS assginStatusName FROM source_assign_his sah LEFT JOIN source_shipper ss ON sah.sourceId = ss.id
+				LEFT JOIN member_info mi ON ss.memberId = mi.id LEFT JOIN order_before ob ON ob.sourceId = ss.id
+				LEFT JOIN member_delete md ON md.businessId=sah.id and md.deleteType=1 and md.appType=2
+				WHERE sah.assignMemberId =:memberId AND sah.memberType=:memberType
+				 AND sah.status=:status 
+				 AND (md.isDeleted =0 OR md.isDeleted  IS NULL )
+				 ORDER BY sah.createTime DESC LIMIT :startRow,:endRow				 
+		    ]]>
+		</sql>
+		
+		<sql id="queryDetailBySourceAssignHis">
+			<![CDATA[
+				 SELECT  sah.id, sah.sourceId, IF(sah.status = 1,sah.createTime,sah.updateTime) AS createTime, sah.status, sah.assignMemberId,
+					ss.s_detail AS sourceSDetail, ss.s_detailed_address AS sourceSDetailAddr, 
+					ss.e_detail AS sourceEDetail, ss.e_detailed_address AS sourceEDetailAddr, 
+					ss.sendDate AS sourceSendDate, ss.version AS sourceVersion, ss.sourceType,
+					ss.remark AS sourceRemark, ss.mileage,ss.goodsType, ss.totalWeight,
+					ss.totalSize, ss.goodsName,ss.carType,ss.carLength, ss.sendGoodsType, ss.freight, 
+					ss.shipperMobile, ss.shipperName, mi.iconUrl, mi.cerPersonalStatus, NOW() AS currentDate,
+					'平台分配' AS assginInfoFromName,
+					CASE WHEN sah.status = 1 THEN '待处理' 
+					WHEN sah.status = 2 THEN '已接单' 
+					WHEN sah.status = 3 THEN '已拒绝' 
+					WHEN sah.status = 4 THEN '已超时' 
+					END AS assginStatusName 
+				FROM source_assign_his sah LEFT JOIN source_shipper ss ON sah.sourceId = ss.id
+				LEFT JOIN member_info mi ON ss.memberId = mi.id WHERE sah.sourceId=:sourceId 
+				AND sah.assignMemberId =:memberId
+			]]>
+	   </sql>
+	   
+	   <sql id="queryDetailByOrderBefore">
+	       <![CDATA[
+		        SELECT sah.id, sah.sourceId, IF(sah.status = 1,sah.createTime,sah.updateTime) AS createTime, sah.status, sah.assignMemberId,
+					ss.s_detail AS sourceSDetail, ss.s_detailed_address AS sourceSDetailAddr, 
+					ss.e_detail AS sourceEDetail, ss.e_detailed_address AS sourceEDetailAddr, 
+					ss.sendDate AS sourceSendDate, ss.version AS sourceVersion, ss.sourceType,
+					ss.remark AS sourceRemark, ss.mileage,ss.goodsType, ss.totalWeight,
+					ss.totalSize, ss.goodsName,ss.carType,ss.carLength, ss.sendGoodsType, ss.freight, 
+					ss.shipperMobile, ss.shipperName, mi.iconUrl, mi.cerPersonalStatus, NOW() AS currentDate,
+					'平台分配'  AS assginInfoFromName,car.carNumber AS driverCarNumber,car.carType AS driverCarType,car.carLength AS driverCarLength,car.load AS driverCarLoad,
+					CASE WHEN sah.status = 1 THEN '待处理' 
+					WHEN sah.status = 2 THEN '已接单' 
+					WHEN sah.status = 3 THEN '已拒绝' 
+					WHEN sah.status = 4 THEN '已超时' 
+					END AS assginStatusName,oi.orderNo,oi.orderStatus,oi.createTime AS orderTime,oi.confirmGoodsTime,
+					oi.transportAmt,op.payStatus,op.payTime,op.platformPayWater,op.payName
+				FROM source_assign_his sah LEFT JOIN source_shipper ss ON sah.sourceId = ss.id LEFT JOIN order_info oi ON oi.sourceId=ss.id
+				LEFT JOIN order_paydetail op ON op.orderNo=oi.orderNo
+				LEFT JOIN member_info mi ON ss.memberId=mi.id 
+				LEFT JOIN member_car car ON car.id=oi.carId
+				WHERE sah.sourceId=:sourceId AND oi.orderBeforeId=:beforeId 
+				AND sah.assignMemberId =:memberId
+		   ]]>
+	   </sql>
+	   
+	   <sql id="queryMemberById">
+	 	    <![CDATA[
+				SELECT 
+				m.id,
+				m.mobile,
+				m.serviceType,
+				m.userName,
+				m.cerPersonalStatus,
+				m.cerCompanyStatus,
+				m.status
+				FROM  member_info m
+				WHERE m.id=:memberId 
+			]]>
+		</sql>
+		
+		<!-- 根据货源id更新货源规则（直发/代发） -->
+		<sql id="updateNstRuleById">
+			<![CDATA[
+				UPDATE source_shipper 
+				SET sourceStatus=:sourceStatus,nstRule=:nstRule,updateTime=NOW(),updateUserId=:updateUserId,version=version + 1
+				WHERE id=:sourceShipperId AND version=:version AND isDeleted = 0
+			]]>
+		</sql>
+		
+		<!-- 根据货源id更新货源分配状态 -->
+		<sql id="updateStatusById">
+			<![CDATA[
+				UPDATE source_assign_his
+				SET status=:assignStatus, updateUserId=:updateUserId, updateTime=:updateTime
+				WHERE id=:sourceAssignHisId	
+				<#if sourceShipperId?exists && sourceShipperId!="" >
+					AND sourceId =:sourceShipperId
+				</#if>
+			]]>
+		</sql>
+		
+		<!-- 根据货源ID 查询 -->
+		<sql id="querySourceShipper">
+			<![CDATA[
+				SELECT
+					id,memberId,sourceType,
+					s_provinceId as sProvinceId,
+					sourceStatus,
+					nstRule,
+					version,
+					assignMemberId,
+					e_provinceId as eProvinceId,
+					shipperName,
+					shipperMobile
+				FROM
+					source_shipper
+				WHERE
+					id=:id AND  isDeleted=0
+					
+			]]>
+		</sql>
+		
+		<sql id="getNstOrderNo">                 
+		 	<![CDATA[
+				SELECT nextval('nst_order')
+		 	]]>
+ 	    </sql>
+
+       	<sql id="findBySourceId">
+		    <![CDATA[
+		        SELECT status FROM source_assign_his WHERE sourceId=:sourceId AND assignMemberId=:assignMemberId
+		    ]]>
+	    </sql>
+	    
+	    <!-- 查询用户是否设置承运车辆   updateUserId:用户会员ID-->
+<sql id="queryCarrierCar">
+  	<![CDATA[
+  	SELECT
+		m.id,
+		m.carLength,
+		m.carNumber,
+		m.carType,
+		m.`load`,
+		m.isCarriage
+	FROM
+		member_car m
+	WHERE
+		m.memberId =:updateUserId AND m.isDeleted = 0 
+		AND m.isCarriage =1
+	 ]]>
+</sql> 
+</sqlMap>

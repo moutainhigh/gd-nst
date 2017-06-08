@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="MemberBaseInfo">
+	
+	<sql id="update">
+		UPDATE member_baseinfo 
+		SET 
+			realName=:realName
+		WHERE 
+			memberId=:memberId
+	</sql>
+	
+</sqlMap>

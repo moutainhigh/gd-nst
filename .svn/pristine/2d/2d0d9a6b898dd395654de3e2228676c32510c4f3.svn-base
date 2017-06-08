@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title></title>
+		<link href="../../css/mui.min.css" rel="stylesheet" />
+		<link rel="stylesheet" href="../../css/style.css" />
+	</head>
+	<body>
+		<section class="indexMain">
+		<header class="head-cont">
+		<span class="mui-icon mui-icon-left-nav">返回</span> 
+		<div class="mui-collapse mui-table-view-cell">
+			<a href="#popover" class="mui-navigate-right">
+				<span id="findText">找货源</span></a>
+			<div id="popover" class="mui-popover select-radio">
+			<ul class="mui-collapse-content ">
+				<li class="mui-table-view-cell select-radio-option" date-id="">
+					<span class="mui-navigate-right">不限</span>
+				</li>
+				<li class="mui-table-view-cell" date-id="2">
+					<span class="mui-navigate-right">同城货源</span>
+				</li>
+				<li class="mui-table-view-cell" date-id="1">
+					<span class="mui-navigate-right">干线货源</span>
+				</li>
+			</ul>
+		</div>
+		
+		</div>
+		<span class="mui-icon-right-nav rightRefulsh">刷新</span> 
+			<ul class="head-list">
+				<li class="eadr" adr-type="sadr"><a><span id="sAdr">出发地</span><span class="arrowdown-close"></span></a></li>
+				<li class="eadr" adr-type="eadr"><a><span id="eAdr">目的地</span><span class="arrowdown-close"></span></a></li>
+				<li>
+					<a href="#carstyle"><em class="list-text">车型</em><span class="arrowdown-close"></span></a>
+
+					<div id="carstyle" class="mui-popover select-poper">
+					<ul class="mui-collapse-content select-list carstyle">
+						<li date-id="-1">不限</li>
+						<li date-id="1">面包车</li>
+						<li date-id="2">金杯车</li>
+						<li date-id="16">依维柯</li>
+						<li date-id="10">平板车</li>
+						<li date-id="8">厢式货车</li>
+						<li date-id="7">敞车</li>
+						<li date-id="9">高栏车</li>
+						<li date-id="11">集装箱</li>
+						<li date-id="12">保温车</li>
+						<li date-id="13">冷藏车</li>
+						<li date-id="14">鲜活水车</li>
+						<li date-id="15">其它</li>
+					</ul>
+					</div>
+				</li>
+				<li>
+					<a href="#carlong">
+						<em class="list-text">车长</em>
+						<span class="arrowdown-close"></span>
+					</a>
+					<div id="carlong" class="mui-popover select-poper">
+					<ul class="mui-collapse-content select-list">
+						<li date-val="-1">不限</li>
+						<li date-val="1.7">1.7米</li>
+						<li date-val="2">2米</li>
+						<li date-val="2.7">2.7米</li>
+						<li date-val="4.2">4.2米</li>
+						<li date-val="4.5">4.5米</li>
+						<li date-val="5">5米</li>
+						<li date-val="6.2">6.2米</li>
+						<li date-val="6.8">6.8米</li>
+						<li date-val="7.2">7.2米</li>
+						<li date-val="7.7">7.7米</li>
+						<li date-val="7.8">7.8米</li>
+						<li date-val="8.2">8.2米</li>
+						<li date-val="8.6">8.6米</li>
+						<li date-val="8.7">8.7米</li>
+						<li date-val="9.6">9.6米</li>
+						<li date-val="11.7">11.7米</li>
+						<li date-val="12.5">12.5米</li>
+						<li date-val="13">13米</li>
+						<li date-val="13.5">13.5米</li>
+						<li date-val="14">14米</li>
+						<li date-val="15">15米</li>
+						<li date-val="16">16米</li>
+						<li date-val="17.5">17.5米</li>
+						<li date-val="18">18米</li>
+						<li date-val="20">20米</li>
+						<li date-val="0">其他</li>
+						
+					</ul>
+					</div>
+				</li>
+			</ul>
+			<p class="mui-text-right all-number">共<span id="sourceAll"></span>条货源</p>
+		</header>
+		<div id="adrTest" style="display:none;margin-top: 50%; left:50%; z-index:99; position: absolute;"></div>
+		<div id="pullrefresh" class="find-main mui-content mui-scroll-wrapper">
+			<div class="mui-scroll">
+				<!--数据列表-->
+				<ul class="mui-table-view mui-table-view-chevron" id="sourceWrap">
+					
+				</ul>
+			</div>
+		</div>
+	</section>
+	<section class="detail-main addressMain">
+		<header class="">
+			<a class="addressBack mui-icon">返回</a>
+			<h1 class="mui-title">选择地址</h1>
+			<a class="clear-right red-text" href="index.html" id="clearRight">清除</a>
+		</header>
+		<section class="choise-addr">
+			<ul class="head-list clearfix">
+				<li class="curr-chiose" id="choiseProv"><em>选择省份</em><span class="mui-icon mui-icon-arrowright"></span></li>
+				<li id="choiseCity"><em>选择城市</em><span class="mui-icon mui-icon-arrowright"></span></li>
+				<li id="choiseArea"><em>选择区县</em></li>
+			</ul>
+		</section>
+		
+		<section class="city-main provMain">
+			<article class="hosit-city" id="hositCity">
+				<div class="city-title">历史城市</div>
+				<div class="city-list">
+					<ul id="hositWrap" >
+						
+					</ul>
+				</div>
+			</article>
+			<article class="prov-city provCity" id="provCity">
+				<div class="city-title">直辖市</div>
+				<div class="city-list">
+					<ul id="directlyCityWarp"></ul>
+				</div>
+			</article>
+			<article class="prov-city provCity">
+				<div class="city-title">省</div>
+				<div class="city-list">
+					<ul id="provinceWarp"></ul>
+				</div>
+			</article>
+			<article class="prov-city provCity">
+				<div class="city-title">自治区</div>
+				<div class="city-list">
+					<ul id="regionWarp"></ul>
+				</div>
+			</article>
+		</section>
+	
+		<section class="city-main coutMain" style="display: none;">
+			<article class="prov-city" id="coutCity">
+				<div class="city-title"></div>
+				<div class="city-list">
+					<ul id="coutCityWarp">
+						
+					</ul>
+				</div>
+			</article>
+			
+		</section>
+		<section class="city-main cityMain" style="display: none;">
+			<article class="prov-city" id="areaCity">
+				<div class="city-title"></div>
+				<div class="city-list">
+					<ul id="areaWarp">
+						
+					</ul>
+				</div>
+			</article>
+			
+		</section>
+	</section>
+	<div id="adrTest11" style="display:none;left:50%; position: absolute; top:50%;"></div>
+	</body>
+	<script id="sourceTemp" type="text/x-jquery-tmpl">
+	{{each(i,d) datalist}}
+   		<li class="mui-table-view-cell mui-media" date-id="${sourceId}">
+			<div class="cont-detail">
+			<section class="cont-head">
+				<div class="right-time">${timeStr}</div>
+					<div class="head-left">
+						<p class="pho-img">
+{{if iconUrl == null}}
+<img src="../../images/icon_user_headpic.jpg" width="100%">
+{{else}}
+<img src="${iconUrl}" width="100%">
+{{/if}}
+
+							
+						</p>
+						<span class="person-name">${userName}</span>
+						{{if cerPersonalStatus == 2 }}
+							<i class="yirenz-icon"></i>
+						{{else}}
+            				<i class="yirenz-icon wrz-icon"></i>
+						{{/if}}
+						
+					</div>
+			</section>
+			<section class="cont-body">
+				<div class="address-cont clearfix">
+					<span>${s_detail}</span>
+					<span class="address-speed"><i></i>${mileage}公里</span>
+					<span>${e_detail}</span>
+				</div>
+				<p class="address-text">
+					<i></i>
+					<span data-type="${goodsType}">${goodsTypeStr}</span><span>${totalWeight}吨</span>
+					<span>${totalSize}米</span><span>${carTypeStr}</span>
+				</p>
+			</section>
+		</div>
+		<section class="cont-foot">
+				<a class="call-photo" data-phone="${mobile}" href="tel:${mobile}">拨打电话</a>
+		</section>
+	</li>
+	{{/each}}
+	</script>
+	<script id="directlyCityTemp" type="text/x-jquery-tmpl">
+	{{each(i,d) areas}}
+		<li areaID = ${areaID}>${area}</li>
+ 	{{/each}}
+	</script>
+	<script id="provinceTemp" type="text/x-jquery-tmpl">
+	<li class="allAddress" areaid = "">全国</li>
+	{{each(i,d) areasProv}}
+		<li areaid = ${areaID}>${area}</li>
+ 	{{/each}}
+	</script>
+	<script id="regionTemp" type="text/x-jquery-tmpl">
+	{{each(i,d) areasRegion}}
+		<li areaid = ${areaID}>${area}</li>
+ 	{{/each}}
+	</script>
+	<script id="coutCityTemp" type="text/x-jquery-tmpl">
+	
+	{{each(i,d) areasRegion}}
+		{{if i == 0}}  
+		<li areaid = ${father} class="allAddress">全省</li>
+		{{/if}}  
+		<li areaid = ${areaID}>${area}</li>
+ 	{{/each}}
+	</script>
+	<script id="areaTemp" type="text/x-jquery-tmpl">
+	{{each(i,d) areaList}}
+		{{if i == 0}}  
+		<li areaid = ${father} class="allAddress">全市</li>
+		{{/if}}  
+		<li areaid = ${areaID}>${area}</li>
+ 	{{/each}}
+	</script>
+	
+	
+	<script src="../../js/mui.min.js"></script>
+	<script type="text/javascript" src="../../js/jquery.js" ></script>
+	<script type="text/javascript" src="../../js/jquery.tmpl.min.js" ></script>
+	<!-- <script type="text/javascript" src="../../js/dataJSON.js" ></script> -->
+	<script type="text/javascript" src="../../js/basic.js" ></script>
+	<script type="text/javascript" src="../../js/findSource.js" ></script>
+	<script type="text/javascript" charset="utf-8">
+	
+	
+		
+	</script>
+
+</html>

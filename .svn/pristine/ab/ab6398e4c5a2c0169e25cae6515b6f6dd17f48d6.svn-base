@@ -1,0 +1,3 @@
+gd.purchaseOrderUrl=${gd.interfaceBase.url}nst2/order/productlist
+gd.sourceExaminePassStatusUrl=${gd.interfaceBase.url}/callbackOrder/updateStatus
+   

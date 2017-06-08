@@ -1,0 +1,1429 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="MemberBaseinfo">
+	<!-- 根据ID 精确查找 -->
+	<sql id="getByMemberId">
+	<![CDATA[
+		SELECT 
+			t.memberId,account,password,level,nickName,realName,sex,birthday,t.mobile,telephone,email,qq,weixin,t.regetype,t.ip,t.device_tokens,t.zipCode,
+			weibo,icon,provinceId,cityId,areaId,address,lon,lat,t.status,t.createUserId,t.createTime,t.updateUserId,t.updateTime,t.userType,t.integral,t.subShow,c.status as isAuth,
+			c.linkMan as companyContact ,c.companyName,cCityId	as ccityId,c.idCard	,t.nsyUserType
+		FROM 
+			member_baseinfo  t 
+		LEFT JOIN
+			member_certifi c
+		ON
+			t.memberId=c.memberId
+		WHERE
+			t.memberId  =:memberId 
+	]]>
+	</sql>
+	
+	<!-- 根据 mobile 精确查找 -->
+	<sql id="getByMobile">
+	<![CDATA[
+		SELECT 
+			t.memberId,t.account,password,level,nickName,realName,t.nsyUserType,sex,birthday,t.mobile,telephone,email,qq,weixin,t.regetype,t.ip,t.device_tokens,t.zipCode,
+			weibo,icon,provinceId,cityId,areaId,address,lon,lat,t.status,t.createUserId,t.createTime,t.updateUserId,t.updateTime,userType,integral,subShow, c.status as isAuth,c.linkMan as companyContact,c.companyName,cCityId as ccityId,c.idCard		
+		FROM 
+			member_baseinfo  t 
+		LEFT JOIN
+			member_certifi c
+		ON
+			t.memberId=c.memberId
+		WHERE 
+			t.mobile  =:mobile 
+			or t.account=:mobile
+	]]>
+	</sql>
+	
+	<sql id="getRecordByMemberInfo">
+	<![CDATA[
+		SELECT 
+			count(1)	
+		FROM 
+			integral
+		WHERE 
+         memberId_ed=:id
+			and type=3
+	]]>
+	</sql>
+	
+	<!-- 根据 mobile and Level  精确查找 -->
+	<sql id="getByMobileAndLevel">
+	<![CDATA[
+		SELECT 
+			t.memberId,t.account,password,t.level,nickName,t.nsyUserType,realName,sex,birthday,t.mobile,telephone,email,qq,weixin,t.regetype,t.ip,t.device_tokens,t.zipCode,
+			weibo,icon,provinceId,cityId,areaId,address,lon,lat,t.status,t.createUserId,t.createTime,t.updateUserId,t.updateTime,userType,subShow, c.status as isAuth,c.linkMan as companyContact,c.companyName,cCityId	as ccityId,c.idCard	
+		FROM 
+			member_baseinfo  t 
+		LEFT JOIN
+			member_certifi c
+		ON
+			t.memberId=c.memberId
+		WHERE 
+			t.mobile  =:mobile 
+			and t.level=:level
+		or 
+			t.account  =:account 
+			and t.level=:level
+	]]>
+	</sql>
+	
+	<!-- 全查找 -->
+	<sql id="getAll">
+	<![CDATA[
+		SELECT 
+			t.memberId,account,password,level,nickName,realName,sex,birthday,t.mobile,telephone,email,qq,weixin,t.regetype,t.ip,t.device_tokens,t.zipCode,
+			weibo,icon,provinceId,cityId,areaId,address,lon,lat,t.status,t.createUserId,t.createTime,t.updateUserId,t.updateTime, t.integral,t.subShow,c.status as isAuth,c.linkMan as companyContact,c.companyName,cCityId	as ccityId,c.idCard	
+		FROM 
+			member_baseinfo  t 
+		LEFT JOIN
+			member_certifi c
+		ON
+			t.memberId=c.memberId
+		LIMIT :startRow,:endRow
+	]]>
+	</sql>
+	<!-- 根据昵称查找 -->
+	<sql id="getByNickName">
+	<![CDATA[
+		SELECT 
+			t.memberId,account,password,level,nickName,realName,sex,birthday,t.mobile,telephone,email,qq,weixin,t.regetype,t.ip,t.device_tokens,t.zipCode,
+			weibo,icon,provinceId,cityId,areaId,address,lon,lat,t.status,t.createUserId,t.createTime,t.updateUserId,t.updateTime,t.integral,t.subShow, c.status as isAuth,c.linkMan as companyContact,c.companyName,cCityId	as ccityId,c.idCard	
+		FROM 
+			member_baseinfo  t 
+		LEFT JOIN
+			member_certifi c
+		ON
+			t.memberId=c.memberId
+		WHERE
+			nickName like "%":nickName"%"
+		LIMIT :startRow,:endRow
+	]]>
+	</sql>
+	
+	<!-- 根据账号查找 -->
+	<sql id="getByAccount">
+	<![CDATA[
+		SELECT 
+			t.memberId,account,password,level,nickName,realName,sex,birthday,t.mobile,telephone,email,qq,weixin,t.regetype,t.ip,t.device_tokens,t.zipCode,
+			weibo,icon,provinceId,cityId,areaId,address,lon,lat,t.status,t.createUserId,t.createTime,t.updateUserId,t.updateTime,userType,subShow, c.status as isAuth,c.linkMan as companyContact,c.companyName,cCityId	as ccityId,c.idCard	
+		FROM 
+			member_baseinfo  t 
+		LEFT JOIN
+			member_certifi c
+		ON
+			t.memberId=c.memberId
+		WHERE
+			account =:account 
+	]]>
+	</sql>
+	
+	<!-- 根据账号查找用户 -->
+	<sql id="getByAccountNoCer">
+	<![CDATA[
+		SELECT
+			t.*,rbm.marketId as marketId
+		FROM
+			member_baseinfo AS t
+		right JOIN business_baseinfo bb  ON bb.userId = t.memberId
+		left JOIN re_business_market rbm ON rbm.businessId = bb.businessId
+		WHERE t.account = :account 
+	]]>
+	</sql>	
+	
+		<!-- 根据账号like查找 -->
+	<sql id="getByAccountLike">
+	<![CDATA[
+		SELECT 
+			t.memberId,account,password,level,nickName,realName,sex,birthday,t.mobile,telephone,email,qq,weixin,t.regetype,t.ip,t.device_tokens,t.zipCode,
+			weibo,icon,provinceId,cityId,areaId,address,lon,lat,t.status,t.createUserId,t.createTime,t.updateUserId,t.updateTime, t.integral,t.subShow,c.status as isAuth,c.linkMan as companyContact,c.companyName,cCityId	as ccityId,c.idCard	
+		FROM 
+			member_baseinfo  t 
+		LEFT JOIN
+			member_certifi c
+		ON
+			t.memberId=c.memberId
+		WHERE
+			account like "%":account"%"
+		LIMIT :startRow,:endRow
+	]]>
+	</sql>
+	
+	
+	<!-- 统计总共记录数  -->
+	<sql id="getTotalNew">
+	<![CDATA[
+		SELECT 
+			count(1)  
+		FROM 
+			member_baseinfo  t 
+		LEFT JOIN
+			member_certifi c
+		ON
+			t.memberId=c.memberId
+		WHERE  1=1 
+			<#if account?exists && account!="" >
+			     AND account like "%":account"%"
+			</#if>
+			<#if level?exists && level!="" >
+				 AND    level=:level
+			</#if>	 
+			<#if openId?exists && openId!="" >
+				 AND (openId  IS ＮOT  NULL OR openId!="")
+			</#if>	 
+			<#if nickName?exists && nickName!="" >
+			     AND nickName like "%":nickName"%"
+			</#if>	     
+			<#if realName?exists && realName!="" >
+			     AND realName like "%":realName"%"
+			</#if>	     
+			<#if mobile?exists && mobile!="" >
+			     AND t.mobile like  "%":mobile"%"
+			</#if>	    
+			<#if telephone?exists && telephone!="" >
+				 AND telephone like  "%":telephone"%"
+			</#if>	    
+			<#if email?exists && email!="" >
+				 AND email like  "%":email"%"
+			</#if>	    
+			<#if qq?exists && qq!="" >
+				 AND qq like  "%":qq"%"
+			</#if>	    
+			<#if weixin?exists && weixin!="" >
+				 AND weixin like  "%":weixin"%"
+			</#if>	    
+			<#if weibo?exists && weibo!="" >
+				 AND weibo like  "%":weibo"%"
+			</#if>	    
+			<#if provinceId?exists && provinceId!="" >
+				AND provinceId=:provinceId
+			</#if>	    
+			<#if cityId?exists && cityId!="" >
+				AND  cityId=:cityId
+			</#if>	    
+			<#if areaId?exists && areaId!="" >
+				AND  areaId=:areaId
+			</#if>	    
+			<#if address?exists && address!="" >
+				 AND address like  "%":address"%"
+			</#if>	    
+			<#if lon?exists && lon!="" >
+				 AND lon=:lon
+			</#if>	    
+			<#if lat?exists && lat!="" >
+				 AND lat=:lat
+			</#if>	    
+			<#if status?exists && status!="" >
+				 AND t.status=:status
+			</#if>
+			<#if startdate?exists && startdate!="" >
+			     AND DATE_FORMAT(t.createTime,'%Y-%c-%d') >= DATE_FORMAT(:startdate,'%Y-%c-%d')
+			</#if>
+			<#if enddate?exists && enddate!="" >
+			     AND DATE_FORMAT(t.createTime,'%Y-%c-%d') <= DATE_FORMAT(:enddate,'%Y-%c-%d')
+			</#if>	 
+			<#if isAuth?exists && isAuth!=""&& isAuth!="0" >
+				AND c.status = :isAuth
+			</#if>
+			<#if isAuth?exists && isAuth=="0" >
+			      AND (c.status = 0 OR c.status is NULL)
+			</#if>
+	]]>
+	</sql>
+	
+	<sql id="getTotal">
+	<![CDATA[
+		SELECT 
+			count(1)
+		FROM 
+			member_baseinfo  t 
+		LEFT JOIN
+			member_certifi c
+		ON
+			t.memberId=c.memberId
+		LEFT JOIN
+			business_baseinfo b 
+		on 
+		b.userId=t.memberId
+		LEFT JOIN
+		re_business_market rbm
+		on
+		rbm.businessId=b.businessId
+		LEFT JOIN
+		market mar
+		on 
+		rbm.marketId=mar.id
+
+		WHERE  1=1 
+			<#if account?exists && account!="" >
+			     AND account like "%":account"%"
+			</#if>
+			<#if level?exists && level!="" >
+				 AND    level=:level
+			</#if>	 
+			<#if regetype?exists && regetype!="" >
+				 AND regetype=:regetype 
+			</#if>	
+			<#if nickName?exists && nickName!="" >
+			     AND nickName like "%":nickName"%"
+			</#if>	     
+			<#if realName?exists && realName!="" >
+			     AND realName like "%":realName"%"
+			</#if>	     
+			<#if mobile?exists && mobile!="" >
+			     AND t.mobile like  "%":mobile"%"
+			</#if>	    
+			<#if telephone?exists && telephone!="" >
+				 AND telephone like  "%":telephone"%"
+			</#if>	    
+			<#if email?exists && email!="" >
+				 AND email like  "%":email"%"
+			</#if>	    
+			<#if qq?exists && qq!="" >
+				 AND qq like  "%":qq"%"
+			</#if>	    
+			<#if weixin?exists && weixin!="" >
+				 AND weixin like  "%":weixin"%"
+			</#if>	    
+			<#if weibo?exists && weibo!="" >
+				 AND weibo like  "%":weibo"%"
+			</#if>	    
+			<#if provinceId?exists && provinceId!="" >
+				AND provinceId=:provinceId
+			</#if>	    
+			<#if cityId?exists && cityId!="" >
+				AND  cityId=:cityId
+			</#if>	    
+			<#if areaId?exists && areaId!="" >
+				AND  areaId=:areaId
+			</#if>	    
+			<#if address?exists && address!="" >
+				 AND address like  "%":address"%"
+			</#if>	    
+			<#if lon?exists && lon!="" >
+				 AND lon=:lon
+			</#if>	    
+			<#if lat?exists && lat!="" >
+				 AND lat=:lat
+			</#if>	    
+			<#if status?exists && status!="" >
+				 AND t.status=:status
+			</#if>
+			<#if startdate?exists && startdate!="" >
+			     AND DATE_FORMAT(t.createTime,'%Y-%c-%d') >= DATE_FORMAT(:startdate,'%Y-%c-%d')
+			</#if>
+			<#if enddate?exists && enddate!="" >
+			     AND DATE_FORMAT(t.createTime,'%Y-%c-%d') <= DATE_FORMAT(:enddate,'%Y-%c-%d')
+			</#if>	 
+			<#if isAuth?exists && isAuth!=""&& isAuth!="0" >
+				AND c.status = :isAuth
+			</#if>
+			<#if isAuth?exists && isAuth=="0" >
+			      AND (c.status = 0 OR c.status is NULL)
+			</#if>
+			<#if marketId?exists && marketId!="">
+				And mar.id = :marketId And t.level != 4 
+			</#if>
+	]]>
+	</sql>
+	
+	<!-- 增加记录，注意date类型的，使用  _string 字段的值，代替date类型的值  -->
+	<sql id="addMemberBaseinfo">
+	<![CDATA[
+	    INSERT INTO  
+	    	member_baseinfo
+	    	(
+	    	account,password,level,nickName,realName,sex,birthday,mobile,telephone,email,qq,weixin,regetype,ip,zipCode,
+			weibo,icon,provinceId,cityId,areaId,address,lon,lat,status,createUserId,createTime,updateUserId,updateTime
+			)
+	    VALUES
+	    	(
+	    	:account,:password,:level,:nickName,:realName,:sex,:birthday_string,:mobile,:telephone,:email,:qq,:weixin,:regetype,:ip,:zipCode,
+			:weibo,:icon,:provinceId,:cityId,:areaId,:address,:lon,:lat,:status,:createUserId,sysdate(),:updateUserId,sysdate()
+			)
+	]]>
+	</sql>
+	
+	<sql id="addReMemForCust">
+	<![CDATA[
+	    INSERT INTO  
+	    	re_mem_for_cust
+	    	(
+	    	busiMemberId,custMemberId,name,type,createUserId,createTime,updateUserId,updateTime
+			)
+	    VALUES
+	    	(
+	    	:busiMemberId,:custMemberId,:name,:type,'SYS',sysdate(),'SYS',sysdate()
+			)
+	]]>
+	</sql>
+	
+	<sql id="updateReMemForCust">
+	<![CDATA[
+	    update re_mem_for_cust t
+	    set t.updateTime = sysdate()
+	    where
+	    	1 = 1
+	    	<#if busiMemberId?exists && busiMemberId!="" >
+			     and busiMemberId=:busiMemberId
+			</#if>
+			<#if custMemberId?exists && custMemberId!="" >
+			     and custMemberId=:custMemberId
+			</#if>
+	]]>
+	</sql>
+	
+	<!-- 根据 memberId 删除记录 -->
+	<sql id="deleteMemberBaseinfo">
+	<![CDATA[
+	DELETE FROM 
+		member_baseinfo
+    WHERE 
+    	memberId=:memberId
+	]]>
+	</sql>
+	
+	
+	<!-- 根据 memberId 更新记录，全部更新用此 sql -->
+	<!-- 	2015年11月30日16:51:22 确认，不管什么情况下，level 角色不能变，在update语句中，去掉level的更新
+			<#if level?exists && level!="" >
+					     level=:level,
+			</#if>	
+			 -->
+	<sql id="updateMemberBaseinfo">
+	<![CDATA[
+	    UPDATE  
+	    	member_baseinfo
+	    SET 
+			<#if account?exists && account!="" >
+					     account=:account,
+			</#if>	    
+			<#if password?exists && password!="" >
+					     password=:password,
+			</#if>	    
+			<#if nsyUserType?exists && nsyUserType!="" >
+					     nsyUserType=:nsyUserType,
+			</#if>	    
+			<#if nickName?exists && nickName!="" >
+					     nickName=:nickName,
+			</#if>	 
+			<#if realName?exists && realName!="" >
+					     realName=:realName,
+			</#if>	
+			<#if  ccityId?exists && ccityId!=""  && ccityId!=0 >
+					    cCityId=:ccityId,
+			</#if>    
+			<#if sex?exists && sex!="" >
+					     sex=:sex,
+			</#if>	    
+			<#if birthday?exists && birthday!="" >
+					     birthday=:birthday_string,
+			</#if>	    
+			<#if mobile?exists && mobile!="" >
+					     mobile=:mobile,
+			</#if>	    
+			<#if telephone?exists  >
+					     telephone=:telephone,
+			</#if>	    
+			<#if email?exists  >
+					     email=:email,
+			</#if>	    
+			<#if qq?exists && qq!="" >
+					     qq=:qq,
+			</#if>	    
+			<#if weixin?exists && weixin!="" >
+					     weixin=:weixin,
+			</#if>	
+			<#if openId?exists && openId!="" >
+					     openId=:openId,
+			</#if>	
+			<#if regetype?exists && regetype!="" >
+					     regetype=:regetype,
+			</#if>
+			<#if ip?exists && ip!="" >
+					     ip=:ip,
+			</#if>
+			<#if zipCode?exists >
+					     zipCode=:zipCode,
+			</#if>
+			<#if device_tokens?exists && device_tokens!="" >
+					     device_tokens=:device_tokens,
+			</#if>    
+			<#if weibo?exists && weibo!="" >
+					     weibo=:weibo,
+			</#if>	   
+			<#if icon?exists && icon!="" >
+					     icon=:icon,
+			</#if>	    
+			<#if provinceId?exists && provinceId!="" >
+					     provinceId=:provinceId,
+			</#if>	    
+			<#if cityId?exists && cityId!="">
+					     cityId=:cityId,
+			</#if>	    
+			<#if areaId?exists && areaId!="" >
+					     areaId=:areaId,
+			</#if>	    
+			<#if address?exists   >
+					     address=:address,
+			</#if>	    
+			<#if lon?exists && lon!="" >
+					     lon=:lon,
+			</#if>	    
+			<#if lat?exists && lat!="" >
+					     lat=:lat,
+			</#if>	 
+			<#if updateUserId?exists && updateUserId!="" >
+					     updateUserId=:updateUserId,
+			</#if>
+			<#if userType?exists && userType!="" &&userType!=0>
+					     userType=:userType,
+			</#if>
+			<#if andupurl?exists && andupurl!="" >
+					     andupurl=:andupurl,
+			</#if>
+			<#if nstCreateTimeFlag?exists && nstCreateTimeFlag!="" && nstCreateTimeFlag==1>
+					     nstCreateTime=SYSDATE(),
+			</#if>
+			<#if unionid?exists && unionid!="">
+					     unionid=:unionid,
+			</#if>
+			<#if gh_id?exists && gh_id!="">
+					     gh_id=:gh_id,
+			</#if>
+			    					    
+						 updateTime = SYSDATE()
+		WHERE 
+		    memberId=:memberId
+	]]>
+	</sql>
+	
+<!-- 	 			
+2015年12月3日 用户莫名奇妙被禁用，单独开个sql 更新status.
+ -->	 
+	 <sql id="updateStatus">
+	<![CDATA[
+	    UPDATE  
+	    	member_baseinfo
+	    SET 
+			<#if status?exists && status!="" >
+				status=:status,
+			</#if>	   
+				updateTime = SYSDATE()
+		WHERE 
+		    memberId=:memberId
+	]]>
+	</sql>
+	
+	
+	<sql id="updateSubShow">
+	<![CDATA[
+	    UPDATE  
+	    	member_baseinfo
+	    SET 
+			<#if subShow?exists>
+				subShow=:subShow,
+			</#if>	   
+				updateTime = SYSDATE()
+		WHERE 
+		    memberId=:memberId
+	]]>
+	</sql>
+	
+		<sql id="getBySearchNew" >
+	 	<![CDATA[
+		SELECT 
+			t.memberId,account,password,level,nickName,realName,sex,birthday,t.mobile,telephone,email,qq,weixin,t.regetype,t.ip,t.device_tokens,t.zipCode,
+			weibo,icon,t.provinceId,t.cityId,t.areaId,t.address,t.lon,t.lat,t.status,t.subShow,t.createUserId,t.createTime,t.updateUserId,t.updateTime, c.status as isAuth,userType, c.linkMan as companyContact,c.companyName ,t.cCityId as ccityId,c.idCard
+		FROM 
+			member_baseinfo  t 
+		LEFT JOIN
+			member_certifi c
+		ON
+			t.memberId=c.memberId
+
+		WHERE  1=1 
+			<#if account?exists && account!="" >
+			     AND account like "%":account"%"
+			</#if>
+			<#if level?exists && level!="" >
+				 AND    level=:level
+			</#if>	 
+			<#if nickName?exists && nickName!="" >
+			     AND nickName like "%":nickName"%"
+			</#if>	     
+			<#if realName?exists && realName!="" >
+			     AND realName like "%":realName"%"
+			</#if>	     
+			<#if mobile?exists && mobile!="" >
+			     AND t.mobile like  "%":mobile"%"
+			</#if>	    
+			<#if telephone?exists && telephone!="" >
+				 AND telephone like  "%":telephone"%"
+			</#if>	    
+			<#if email?exists && email!="" >
+				 AND email like  "%":email"%"
+			</#if>	    
+			<#if qq?exists && qq!="" >
+				 AND qq like  "%":qq"%"
+			</#if>	    
+			<#if weixin?exists && weixin!="" >
+				 AND weixin like  "%":weixin"%"
+			</#if>	    
+			<#if regetype?exists && regetype!="" >
+				 AND regetype=:regetype 
+			</#if>	
+			<#if ip?exists && ip!="" >
+				 AND ip like    "%":ip"%"
+			</#if>	    
+			<#if weibo?exists && weibo!="" >
+				 AND weibo like  "%":weibo"%"
+			</#if>	    
+			<#if provinceId?exists && provinceId!="" >
+				AND provinceId=:provinceId,
+			</#if>	    
+			<#if cityId?exists && cityId!="" >
+				AND  cityId=:cityId,
+			</#if>	    
+			<#if areaId?exists && areaId!="" >
+				AND  areaId=:areaId,
+			</#if>	    
+			<#if address?exists && address!="" >
+				 AND address like  "%":address"%"
+			</#if>	    
+		 
+			
+			<#if isAuth?exists && isAuth!=""&& isAuth!="0" >
+				AND c.status = :isAuth
+			</#if>
+			<#if isAuth?exists && isAuth=="0" >
+			      AND (c.status = '0' OR c.status is NULL)
+			</#if>
+			    
+			<#if lon?exists && lon!="" >
+				 AND lon=:lon
+			</#if>	    
+			<#if lat?exists && lat!="" >
+				 AND lat=:lat
+			</#if>	    
+			<#if status?exists && status!="" >
+				 AND t.status=:status
+			</#if>	    
+			<#if startdate?exists && startdate!="" >
+			     AND DATE_FORMAT(t.createTime,'%Y-%c-%d') >= DATE_FORMAT(:startdate,'%Y-%c-%d')
+			</#if>
+			<#if enddate?exists && enddate!="" >
+			     AND DATE_FORMAT(t.createTime,'%Y-%c-%d') <= DATE_FORMAT(:enddate,'%Y-%c-%d')
+			</#if>
+		 	ORDER BY 
+		 		t.createTime desc 
+			LIMIT :startRow,:endRow
+		]]>
+    </sql> 
+	 
+   <!-- 多条件查询  account,level,nickName,realName,mobile,telephone,email,qq，weixin,weibo,provinceId,cityId	,areaId ,address,lon,lat,status  -->
+    <sql id="getBySearch" >
+	 	<![CDATA[
+		SELECT 
+			t.memberId, t.account,t.password,t.level,t.nickName,t.realName,t.sex,t.birthday,t.mobile,t.telephone,t.email,t.qq, t.weixin,t.regetype,t.ip,t.device_tokens,t.zipCode,
+			t.weibo,t.icon,t.provinceId,t.cityId,t.areaId,t.address,t.lon,t.lat,t.status,t.subShow,t.createUserId,t.createTime,t.updateUserId,t.updateTime, c.status as isAuth,
+			mar.id marketId ,mar.marketName,t.userType, c.linkMan as companyContact,c.companyName,t.cCityId	as ccityId,c.idCard ,
+			mb.mobile AS refereeMobile ,mb.realName AS refereeRealName,t.nsyUserType
+		FROM 
+			member_baseinfo  t 
+		LEFT JOIN
+			member_certifi c
+		ON
+			t.memberId=c.memberId
+		LEFT JOIN
+			business_baseinfo b 
+		on 
+		b.userId=t.memberId
+		LEFT JOIN
+		re_business_market rbm
+		on
+		rbm.businessId=b.businessId
+		LEFT JOIN
+		market mar
+		on 
+		rbm.marketId=mar.id
+		
+	    LEFT JOIN integral i   on t.memberId= i.memberId_ed
+        LEFT JOIN member_baseinfo mb  on mb.memberId = i.memberId
+
+		WHERE  1=1 
+			<#if account?exists && account!="" >
+			     AND t.account like "%":account"%"
+			</#if>
+			<#if level?exists && level!="" >
+				 AND    t.level=:level
+			</#if>	 
+			<#if nickName?exists && nickName!="" >
+			     AND t.nickName like "%":nickName"%"
+			</#if>
+			<#if openId?exists && openId!="" >
+				 AND (openId  IS ＮOT  NULL OR openId!="")
+			</#if>	     
+			<#if realName?exists && realName!="" >
+			     AND t.realName like "%":realName"%"
+			</#if>	     
+			<#if mobile?exists && mobile!="" >
+			     AND t.mobile like  "%":mobile"%"
+			</#if>	    
+			<#if telephone?exists && telephone!="" >
+				 AND t.telephone like  "%":telephone"%"
+			</#if>	    
+			<#if email?exists && email!="" >
+				 AND t.email like  "%":email"%"
+			</#if>	    
+			<#if qq?exists && qq!="" >
+				 AND t.qq like  "%":qq"%"
+			</#if>	    
+			<#if weixin?exists && weixin!="" >
+			</#if>
+			<#if openId?exists && openId!="" >
+				 AND openId =:openId
+			</#if>	    
+			<#if regetype?exists && regetype!="" >
+				 AND t.regetype=:regetype 
+			</#if>	
+			<#if ip?exists && ip!="" >
+				 AND t.ip like    "%":ip"%"
+			</#if>	    
+			<#if weibo?exists && weibo!="" >
+				 AND t.weibo like  "%":weibo"%"
+			</#if>	    
+			<#if provinceId?exists && provinceId!="" >
+				AND t.provinceId=:provinceId,
+			</#if>	    
+			<#if cityId?exists && cityId!="" >
+				AND  t.cityId=:cityId,
+			</#if>	    
+			<#if areaId?exists && areaId!="" >
+				AND  t.areaId=:areaId,
+			</#if>	    
+			<#if address?exists && address!="" >
+				 AND t.address like  "%":address"%"
+			</#if>	    
+		 
+			
+			<#if isAuth?exists && isAuth!=""&& isAuth!="0" >
+				AND c.status = :isAuth
+			</#if>
+			<#if isAuth?exists && isAuth=="0" >
+			      AND (c.status = '0' OR c.status is NULL)
+			</#if>
+			    
+			<#if lon?exists && lon!="" >
+				 AND t.lon=:lon
+			</#if>	    
+			<#if lat?exists && lat!="" >
+				 AND t.lat=:lat
+			</#if>	    
+			<#if status?exists && status!="" >
+				 AND t.status=:status
+			</#if>	    
+			<#if startdate?exists && startdate!="" >
+			     AND DATE_FORMAT(t.createTime,'%Y-%c-%d') >= DATE_FORMAT(:startdate,'%Y-%c-%d')
+			</#if>
+			<#if enddate?exists && enddate!="" >
+			     AND DATE_FORMAT(t.createTime,'%Y-%c-%d') <= DATE_FORMAT(:enddate,'%Y-%c-%d')
+			</#if>
+			<#if marketId?exists && marketId!="">
+				And mar.id = :marketId And t.level != 4
+			</#if>
+			group by   t.memberId
+		 	ORDER BY 
+		 		t.createTime desc 
+			LIMIT :startRow,:endRow
+		]]>
+    </sql>
+	
+		<!-- 根据 memberId 更新记录APP，全部更新用此 sql -->
+	<sql id="updateMemberBaseinfoApp">
+	<![CDATA[
+	    UPDATE  
+	    	member_baseinfo
+	    SET  
+			<#if realName?exists && realName!="" >
+					     realName=:realName,
+			</#if>	     
+			<#if sex?exists && sex!="" >
+					     sex=:sex,
+			</#if>	       
+			<#if memberId?exists && memberId!="" >
+					     updateUserId=:memberId,
+			</#if>
+			<#if userType?exists && userType!="" >
+					     userType=:userType,
+			</#if>		    					    
+						 updateTime=sysdate()
+		WHERE 
+		    memberId=:memberId
+	]]>
+	</sql>
+	
+	<!-- 会员登录 -->
+	<sql id="commitLogin">
+	<![CDATA[
+		SELECT 
+			t.memberId,t.account,t.password,t.mobile,t.email,t.ip,t.status,t.level 
+		FROM 
+			member_baseinfo t 
+		WHERE 
+			t.mobile = :loginName or t.account = :loginName or t.email = :loginName
+	]]>
+	</sql>
+	
+	<sql id="getLogin">
+	<![CDATA[
+		SELECT 
+			t.memberId,t.account,t.password,t.mobile,t.email,t.ip,t.status,t.level 
+		FROM 
+			member_baseinfo t 
+		WHERE 
+			1 = 1
+			<#if mobile?exists && mobile!="" >
+			      AND t.mobile = :mobile 
+			</#if>
+			<#if account?exists && account!="" >
+			      AND t.account = :account 
+			</#if>
+			<#if email?exists && email!="" >
+			      AND t.email = :email 
+			</#if>
+	]]>
+	</sql>
+
+	<!-- 会员登录 -->
+	<sql id="checkRegister">
+	<![CDATA[
+		SELECT 
+			t.memberId,t.account,t.password,t.mobile,t.email,t.ip,t.status,t.level 
+		FROM 
+			member_baseinfo t 
+		WHERE 
+			1 = 1 and
+			<#if mobile?exists && mobile!="" && account?exists && account!="" && email?exists && email!="" >
+			       (t.mobile = :mobile  or t.account = :mobile or  t.email = :mobile) or
+			       (t.mobile = :account  or t.account = :account  or t.email = :account) or
+			        (t.mobile = :email  or t.account = :email  or t.email = :email) limit 1
+			</#if>
+			
+	]]>
+	</sql>	
+	
+	
+    <sql id="getBrowseHistoryByMemberId" >
+    	<![CDATA[
+    		SELECT 
+    			a.memberId, a.marketId, b.marketName 
+    		FROM 
+    			member_browse_market_history a, market b 
+    		WHERE 
+    			a.marketId = b.id 
+    		AND a.memberId = :memberId
+    	]]>
+    </sql>
+    
+    <sql id="addBrowseHistory" >
+    	<![CDATA[
+    	INSERT INTO 
+    		member_browse_market_history
+    		(
+    			memberId, marketId, browseCount, browseTime
+    		) 
+    	VALUES
+    		(
+    			:memberId, :marketId, :browseCount, :browseTimeStr
+    		)
+    	]]>
+    </sql>
+    
+    <sql id="getCompanyName" >
+    	<![CDATA[
+    		SELECT b.name FROM member_baseinfo a,member_companyinfo b
+            WHERE a.id=
+    		AND b.userId = :memberId
+    	]]>
+    </sql>
+    
+    <sql id="updateUserType" >
+    	<![CDATA[
+    	UPDATE  
+	    	member_baseinfo
+	    SET 
+	        userType=:userType
+	    where 
+	    	memberId=:memberId
+    	]]>
+    </sql>
+    
+        <sql id="getCompany" >
+    	<![CDATA[
+    	SELECT t.memberId,c.linkMan as companyContact ,c.companyName,c.mobile as companyMobile
+	   	FROM 
+			member_baseinfo  t 
+		LEFT JOIN
+			member_certifi c
+		ON
+			t.memberId=c.memberId
+		WHERE
+			t.userType=2
+			AND c.companyName IS NOT NULL
+			order by CONVERT( c.companyName  USING gbk ) COLLATE gbk_chinese_ci ASC
+    	]]>
+    </sql>
+    <!-- 按条件查找 -->
+	<sql id="getCompanyByCondition">
+	<![CDATA[
+		SELECT t.memberId,c.linkMan as companyContact ,c.companyName,c.mobile as companyMobile
+	   	FROM 
+			member_baseinfo  t 
+		LEFT JOIN
+			member_certifi c
+		ON
+			t.memberId=c.memberId
+		WHERE 
+			1=1
+			AND t.userType=2
+			AND c.companyName IS NOT NULL
+		<#if companyName?exists && companyName!="" >
+		      AND c.companyName like "%":companyName"%"
+		</#if>
+		<#if memberId?exists && memberId!="" >
+		      AND t.memberId =:memberId
+		</#if>
+		LIMIT :startRow, :endRow
+	]]>
+	</sql>
+    <!-- 按条件查找 -->
+	<sql id="getCompanyByConditionTotal">
+	<![CDATA[
+		SELECT count(*)
+	   	FROM 
+			member_baseinfo  t 
+		LEFT JOIN
+			member_certifi c
+		ON
+			t.memberId=c.memberId
+		WHERE
+			1=1
+			AND t.userType=2
+			AND c.companyName IS NOT NULL
+		<#if companyName?exists && companyName!="" >
+		      AND c.companyName like "%":companyName"%"
+		</#if>
+		<#if memberId?exists && memberId!="" >
+		      AND t.memberId =:memberId
+		</#if>
+	]]>
+	</sql>
+   
+   
+   	<!--  -->
+	<sql id="getlink">
+	<![CDATA[
+	    INSERT INTO  
+	    	integral
+	    	(type,memberId,memberId_ed,integral,createTime,createuserid,updatetime,updateuserid,description
+			)
+	    VALUES
+	    	(
+             3,:memberId,:memberId_ed,0,sysdate(),:memberId_ed,sysdate(),:memberId_ed,:description
+			)
+	]]>
+	</sql>
+	
+		<sql id="addInt">
+	<![CDATA[
+          SELECT gd_nst_addIntegration(:a,:b);
+	]]>
+	</sql>
+	
+		<sql id="getContacts">
+	<![CDATA[
+		SELECT 
+			t.memberId,account,password,level,nickName,realName,sex,birthday,t.mobile,telephone,email,qq,weixin,t.regetype,t.ip,t.device_tokens,t.zipCode,		
+			weibo,icon,provinceId,cityId,t.areaId,address,t.status,t.createUserId,t.createTime,t.updateUserId,t.updateTime,t.userType,t.integral,t.subShow, c.status as isAuth,
+			c.linkMan as companyContact ,c.companyName	,t.cCityId as ccityId,a.area,t.andupurl,c.certificationType,ifnull(c.nstStatus,-1) as nstStatus,c.nst_ngReason as nstRjReason,t.nstEvaluate,  c.nst_bzlPhotoUrl,c.nst_cardPhotoUrl ,c.nstCompanyAddress AS nst_CompanyAddress 
+		FROM 
+			member_baseinfo  t 
+		LEFT JOIN
+			member_certifi c
+		ON
+			t.memberId=c.memberId
+	    LEFT JOIN
+	        AREA A
+	    ON
+	       t.cCityId=A.areaID
+		WHERE
+			t.memberId  =:memberId 
+	]]>
+	</sql>
+	
+	        <sql id="getCompanyByMcity" >
+    	<![CDATA[
+    		<#if userType?exists && userType!=""&&userType==2 >
+    		SELECT t.memberId,c.linkMan as companyContact ,c.companyName,c.mobile as companyMobile
+    		   	FROM 
+			member_baseinfo  t 
+		LEFT JOIN
+			member_certifi c
+		ON
+			t.memberId=c.memberId
+		WHERE
+			t.userType=2
+			AND c.companyName IS NOT NULL
+			and t.memberId=:memberId
+    		
+    		union 
+    	SELECT t.memberId,c.linkMan as companyContact ,c.companyName,c.mobile as companyMobile
+	   	FROM 
+			member_baseinfo  t 
+		LEFT JOIN
+			member_certifi c
+		ON
+			t.memberId=c.memberId
+		WHERE
+			t.userType=2
+			AND c.companyName IS NOT NULL
+			AND t.cCityId=:ccityId
+			order by CONVERT(companyName  USING gbk ) COLLATE gbk_chinese_ci ASC
+			</#if>
+			<#if userType?exists && userType!=""&&userType==1 >
+			    	SELECT t.memberId,c.linkMan as companyContact ,c.companyName,c.mobile as companyMobile
+	   	FROM 
+			member_baseinfo  t 
+		LEFT JOIN
+			member_certifi c
+		ON
+			t.memberId=c.memberId
+		WHERE
+			t.userType=2
+			AND c.companyName IS NOT NULL
+			AND t.cCityId=:ccityId
+			order by CONVERT( companyName  USING gbk ) COLLATE gbk_chinese_ci ASC
+			</#if>
+    	]]>
+    </sql>
+    
+    		<sql id="getPushMessage">
+	<![CDATA[
+		SELECT 
+				id  as messageId,
+				type as messageType,
+				mbId,
+				clId,
+				createTime,
+				cityId,
+				readed,
+				(SELECT COUNT(1) FROM nstpush_message_info WHERE messageId=t.id ) as messageCount,
+				t.source_type	
+		FROM 
+			nstpush_message  t 
+		WHERE
+		    IFNULL(deleted,0)=0
+		    and 
+			t.memberId  =:memberId 
+			order by createTime desc
+			LIMIT :startRow, :endRow
+	]]>
+	</sql>
+	
+	    		<sql id="getPushMessageInfo">
+	<![CDATA[
+		SELECT 
+		      mb_Id,
+  cl_Id,
+  t.s_provinceId,
+  t.s_cityId,
+  t.s_areaId,
+  t.f_provinceId,
+  t.f_cityId,
+  t.f_areaId,
+  t.goodsName,
+  t.totalWeight,
+  t.hundredweight,
+      CASE
+    t.hundredweight 
+    WHEN 0 THEN '吨'
+    WHEN 1 THEN '公斤'
+    END AS hundredweightString,
+  t.carType,
+  t.mobile,
+  t.contact,
+  m.createUserId memberId,
+  m.isDeleted,
+  t.distance,
+  t.mCity as mcity,
+  m.createTime 
+		FROM 
+			nstpush_message_info  t ,
+			member_address m
+		WHERE t.mb_Id=m.id
+		and	t.messageId  =:id 
+	]]>
+	</sql>
+	
+		
+	    		<sql id="getPushMessageInfoCarLine">
+	<![CDATA[
+		SELECT 
+		  
+		    cl_Id,
+		      		CASE
+    	carType 
+WHEN 0 THEN '厢式货车'
+WHEN 1 THEN '敞车'
+WHEN 2 THEN '冷藏车'
+WHEN 3 THEN '保温车'
+WHEN 4 THEN '其他'
+WHEN 5 THEN '高栏车'
+WHEN 6 THEN '平板车'
+WHEN 7 THEN '活鲜水车'
+WHEN 8 THEN '集装箱'
+WHEN 9 THEN '不限'
+ELSE '不限' END AS carTypeString,
+		    mobile,
+		    contact,
+		    a.isDeleted,
+		    a.s_provinceId,
+  			a.s_cityId,
+  			a.s_areaId,
+  			a.e_provinceId,
+  			a.e_cityId,
+  			a.e_areaId,
+  		
+  		  	a.s_provinceId2,
+  			a.s_cityId2,
+  			a.s_areaId2,
+  			a.e_provinceId2,
+  			a.e_cityId2,
+  			a.e_areaId2,
+  		
+  		
+  		  	a.s_provinceId3,
+  			a.s_cityId3,
+  			a.s_areaId3,
+  			a.e_provinceId3,
+  			a.e_cityId3,
+  			a.e_areaId3,
+  		
+  		  	a.e_provinceId4,
+  			a.e_cityId4,
+  			a.e_areaId4,
+  			a.e_provinceId5,
+  			a.e_cityId5,
+  			a.e_areaId5,
+  			a.memberId,
+  			t.distance,
+  			t.mCity as mcity,
+  			a.createTime
+		FROM 
+			nstpush_message_info  t ,carLine a
+			
+		WHERE
+		     t.cl_id=a.id
+		and	t.messageId  =:id 
+	]]>
+	</sql>
+	
+	    		<sql id="getPushMessageCount">
+	<![CDATA[
+		SELECT 
+				count(id )
+		FROM 
+			nstpush_message  t 
+		WHERE IFNULL(t.deleted,0)=0
+			and t.memberId  =:memberId 
+			
+	]]>
+	</sql>
+	
+<sql id="updateNstEvaluate">
+	<![CDATA[
+		UPDATE 
+			member_baseinfo
+		SET 
+			nstEvaluate = :nstEvaluate
+		WHERE
+			memberId = :memberId
+	]]>
+	</sql>
+
+<sql id="updateNsyUserType">
+	<![CDATA[
+		UPDATE 
+			member_baseinfo
+		SET 
+			nsyUserType = :nsyUserType
+		WHERE
+			memberId = :memberId
+	]]>
+	</sql>
+	
+	<sql id="getMemberInfoByMemberedId">
+	<![CDATA[
+		SELECT 
+		t.memberId,t.account,password,t.level,nickName,realName,sex,birthday,t.mobile,telephone,email,qq,weixin,t.regetype,t.ip,t.device_tokens,t.zipCode
+		FROM  member_baseinfo t , integral i 
+		WHERE 
+        t.memberId = i.memberId
+        AND i.memberId_ed =:memberId 
+        LIMIT 1;
+			
+	]]>
+	</sql>
+	
+		<!--管理后台农速通登录查询  -->
+		<sql id="queryByParameters">
+	<![CDATA[
+	SELECT * FROM (	
+				SELECT  
+			        t.memberId,t.userType,t.account,t.level,t.nickName,t.realName,t.sex, t.birthday,t.mobile,t.telephone, t.regetype,
+			        t.status,t.createUserId,t.createTime,t.updateUserId,t.updateTime,t.integral,t.subShow, 
+			        c.nstStatus as nstStatus, c.linkMan as companyContact,c.companyName,t.cCityId,t.nstCreateTime, e.areaName , 
+			        mb.mobile AS refereeMobile ,mb.realName AS refereeRealName
+		        FROM member_baseinfo  t 
+		        LEFT JOIN member_certifi c on  t.memberId  = c.memberId  
+                LEFT JOIN integral i   on  t.memberId= i.memberId_ed
+                LEFT JOIN area_setting e on   e.memberId  = i.memberId  
+                LEFT JOIN member_baseinfo mb  on mb.memberId = i.memberId
+                
+                GROUP BY  t.memberId
+                  ) z
+                         WHERE 1=1
+           	<#if account?exists && account!="" >
+			     AND z.account like "%":account"%"
+			</#if>
+			<#if level?exists && level!="" >
+				 AND   z.level=:level
+			</#if>	
+			<#if regetype?exists && regetype!="" >
+				 AND   z.regetype=:regetype
+			</#if>	  
+			<#if mobile?exists && mobile!="" >
+			     AND z.mobile like  "%":mobile"%"
+			</#if>
+			<#if status?exists && status!=""&& status!="0" >
+				AND z.status = :status
+			</#if>
+			<#if status?exists && status=="0" >
+			      AND (z.status = '0' OR z.status is NULL)
+			</#if>
+			<#if isAuth?exists && isAuth!=""&& isAuth!="0" >
+				AND z.nstStatus = :isAuth
+			</#if>
+			<#if isAuth?exists && isAuth=="0" >
+			      AND (z.nstStatus = '0' OR z.nstStatus is NULL)
+			</#if>
+            <#if startDate?exists && startDate!="" >
+              AND z.createTime >=:startDate
+           	</#if>
+            <#if endDate?exists && endDate!="" >
+              AND DATE_FORMAT(z.createTime,'%Y-%c-%d') <= DATE_FORMAT(:endDate, '%Y-%c-%d')
+           	</#if>
+           	<#if userType?exists && userType!="" >
+               AND z.userType =:userType
+            </#if>
+            <#if areaName?exists && areaName!="" >
+                 and  z.areaName =:areaName 
+            </#if>
+            <#if cCityId?exists && cCityId!="" >
+            	AND z.cCityId  =:cCityId
+            </#if> 
+            <#if loginStartDate?exists && loginStartDate!="" >
+                AND z.nstCreateTime >= :loginStartDate
+            </#if>
+            <#if loginEndDate?exists && loginEndDate!="" >
+          		AND DATE_FORMAT(z.nstCreateTime,'%Y-%c-%d') <= DATE_FORMAT(:loginEndDate, '%Y-%c-%d')
+            </#if>
+	        ORDER BY z.createTime DESC
+		    LIMIT :startRow,:endRow
+	]]>
+	</sql>
+	
+	
+	<!--管理后台总数查询  -->
+<sql id="queryTotalByParameters">
+	<![CDATA[
+		SELECT 
+		count(1)  FROM (
+		SELECT  
+					t.memberId,account,password,level,nickName,realName,sex,birthday,t.mobile,telephone,email,qq,weixin,t.regetype,t.ip,t.device_tokens,t.zipCode,
+			        weibo,icon,provinceId,cityId,areaId,address,lon,lat,t.status,t.createUserId,t.createTime,t.updateUserId,t.updateTime,t.integral,t.subShow,
+			         c.nstStatus as nstStatus,c.linkMan as companyContact,c.companyName,cCityId,nstCreateTime, e.areaName 
+		        FROM member_baseinfo  t 
+		        LEFT JOIN member_certifi c on  t.memberId  = c.memberId  
+                LEFT JOIN integral i   on  t.memberId= i.memberId_ed
+                LEFT JOIN area_setting e on   e.memberId  = i.memberId  
+                GROUP BY  t.memberId
+                  ) z
+         WHERE 1=1
+			<#if account?exists && account!="" >
+			     AND z.account like "%":account"%"
+			</#if>
+			<#if level?exists && level!="" >
+				 AND   z.level=:level
+			</#if>	 
+			<#if regetype?exists && regetype!="" >
+				 AND   z.regetype=:regetype
+			</#if>	 
+			<#if mobile?exists && mobile!="" >
+			     AND z.mobile like  "%":mobile"%"
+			</#if>
+			<#if status?exists && status!=""&& status!="0" >
+				AND z.status = :status
+			</#if>
+			<#if status?exists && status=="0" >
+				AND (z.status = '0' OR z.status is NULL)
+			</#if>	
+			<#if isAuth?exists && isAuth!=""&& isAuth!="0" >
+				AND z.nstStatus = :isAuth
+			</#if>
+			<#if isAuth?exists && isAuth=="0" >
+			      AND (z.nstStatus = '0' OR z.nstStatus is NULL)
+			</#if>
+			            <#if startDate?exists && startDate!="" >
+			              AND z.createTime >=:startDate
+			           </#if>
+			            <#if endDate?exists && endDate!="" >
+			              AND DATE_FORMAT(z.createTime,'%Y-%c-%d') <= DATE_FORMAT(:endDate, '%Y-%c-%d')
+			           </#if>
+			           	<#if userType?exists && userType!="" >
+			               AND z.userType =:userType
+			            </#if>
+			            <#if areaName?exists && areaName!="" >
+		                  and  z.areaName =:areaName 
+	                    </#if>
+	                     <#if cCityId?exists && cCityId!="" >
+			              AND z.cCityId  =:cCityId
+			            </#if> 
+			             <#if loginStartDate?exists && loginStartDate!="" >
+	                      AND z.nstCreateTime >= :loginStartDate
+	                     </#if>
+	                     <#if loginEndDate?exists && loginEndDate!="" >
+		                  AND DATE_FORMAT(z.nstCreateTime,'%Y-%c-%d') <= DATE_FORMAT(:loginEndDate, '%Y-%c-%d')
+	                     </#if>
+	]]>
+	</sql>
+	
+	
+	<sql id="getNstMemberById">
+	<![CDATA[
+		SELECT 
+			t.memberId,t.userType,t.account,t.level,t.nickName,t.realName,t.mobile,t.regetype,t.ip,t.device_tokens,t.zipCode,
+		    t.status,t.createUserId,t.createTime,t.updateUserId,t.updateTime,t.integral,t.subShow,
+			c.nstStatus as nstStatus,c.linkMan as companyContact,c.companyName,t.cCityId,t.nstCreateTime, e.areaName ,
+			(select aa.area from area aa  where aa.areaID = t.cCityId ) AS  cityName ,
+			mb.mobile AS refereeMobile ,mb.realName AS refereeRealName
+		FROM  member_baseinfo  t 
+	   LEFT JOIN member_certifi c on  t.memberId  = c.memberId  
+       LEFT JOIN integral i   on t.memberId= i.memberId_ed
+       LEFT JOIN area_setting e on   e.memberId  = i.memberId  
+       LEFT JOIN member_baseinfo mb  on mb.memberId = i.memberId
+	   WHERE
+			t.memberId  =:memberId 
+	]]>
+	</sql>
+	
+	<sql id="queryMemberListByMap">
+	<![CDATA[
+		SELECT 
+		  m.memberId,
+		  m.mobile,
+		  m.realName 
+		FROM
+		  member_baseinfo m
+		<#if busiMemberId?exists && busiMemberId != "">
+			,re_mem_for_cust r 
+		</#if>
+		WHERE 1=1
+		<#if busiMemberId?exists && busiMemberId != "">
+			AND m.`memberId` = r.`custMemberId` 
+			AND r.`type` = '2'
+		</#if>
+		
+		<#if realName?exists && realName != "">
+			AND m.`realName` LIKE "%":realName"%"
+		</#if>
+		<#if mobile?exists && mobile != "">
+			AND m.`mobile` = :mobile
+		</#if>
+		<#if busiMemberId?exists && busiMemberId != "">
+			AND r.`busiMemberId` = :busiMemberId
+		</#if>
+		<#if memberId?exists && memberId != "">
+			AND m.`memberId` = :memberId
+		</#if>
+		<#if busiMemberId?exists && busiMemberId != "">
+			ORDER BY r.`updateTime` DESC
+		</#if>	
+		]]>
+	</sql>
+	
+	<sql id="queryMemberForSinxin">
+	<![CDATA[
+		SELECT 
+		  t.memberId,
+		  t.mobile,
+		  t.realName,
+		  t.updateTime 
+		FROM
+		  (SELECT 
+		    mb.memberId,
+		    mb.mobile,
+		    IFNULL(mb.realName, '') AS realName,
+		    IF(
+		      mc.updateTime IS NULL,
+		      mc.createTime,
+		      mc.updateTime
+		    ) AS updateTime
+		  FROM
+		    member_baseinfo mb,
+		    business_baseinfo b,
+		    re_mem_for_cust mc 
+		  WHERE mc.`busiMemberId` = b.`userId` 
+		    AND mb.`memberId` = mc.`custMemberId` 
+		    AND mc.`type` = '2' 
+		    AND b.`businessId` IN 
+		    (SELECT 
+		      s.businessId 
+		    FROM
+		      re_business_steelyard s 
+		    WHERE 1 = 1 
+		    <#if macAddr?exists && macAddr != "">
+				AND s.`macAddr` = :macAddr
+			</#if>
+		      ) 
+		) t
+		WHERE 1=1
+		<#if lastUpdateTime?exists && lastUpdateTime != "">
+			AND t.`updateTime` > DATE_FORMAT(:lastUpdateTime, '%Y-%c-%d %H:%i:%s')
+		</#if>
+		ORDER BY t.`updateTime` ASC
+	]]>
+	</sql>
+	<sql id="getMemberBusinessInfo">
+	<![CDATA[
+				SELECT mb.memberId,mb.realName,mb.mobile,bb.shopsName,CONCAT(ar1.`area`,ar2.`area`,ar3.`area`) AS AREA, bb.address,bb.shopsDesc,bb.businessModel,bb.managementType,bb.mainProduct,a.cateName,a.categoryId FROM member_baseinfo AS mb
+		LEFT JOIN business_baseinfo AS  bb ON mb.memberId=bb.userId
+			LEFT JOIN
+			(SELECT  pc.cateName,pc.categoryId,bb.`businessId` FROM  business_baseinfo AS bb
+LEFT JOIN re_business_category AS rbc ON rbc.businessId=bb.businessId
+LEFT JOIN product_category AS  pc ON pc.categoryId=rbc.categoryId
+WHERE rbc.businessType=0 AND pc.curlevel=0 AND bb.`businessId`=:businessId) AS a ON a.businessId=bb.`businessId`
+			
+					
+LEFT JOIN `area`  AS ar1 ON ar1.areaID=bb.provinceId
+LEFT JOIN `area`  AS ar2 ON ar2.areaID=bb.cityId
+LEFT JOIN `area`  AS ar3 ON ar3.areaID=bb.areaId		
+		
+		WHERE bb.`businessId`=:businessId
+		]]>
+	</sql>
+	
+	
+</sqlMap>

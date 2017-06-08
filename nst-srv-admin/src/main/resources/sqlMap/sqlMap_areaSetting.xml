@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="AreaSetting">
+	<sql id="getById">
+	<![CDATA[
+		SELECT id ,
+               areaName,
+               memberId,   
+               mobile     
+
+		FROM 
+			area_setting t
+		WHERE id=:id
+	]]>
+	</sql>
+	
+	
+	<sql id="getByAreaName">
+	<![CDATA[
+		SELECT id ,
+               areaName,
+               memberId,   
+               mobile     
+
+		FROM 
+			area_setting t
+		WHERE areaName=:areaName
+		AND   mobile  =:mobile
+	]]>
+	</sql>
+	
+	
+	<sql id="getByCondition">
+	<![CDATA[
+		SELECT id ,
+               areaName,
+               memberId,   
+               mobile     
+		FROM 
+			   area_setting t
+		WHERE  1=1  
+			<#if areaName?exists && areaName!="" >
+			      AND areaName like "%":areaName"%"
+			</#if>
+			 <#if mobile?exists && mobile!="" >
+			      AND mobile like "%":mobile"%"
+		     </#if>
+		     ORDER BY id DESC
+		     LIMIT :startRow,:endRow
+	]]>
+	</sql>
+	
+	
+	<sql id="getAllAreaName">
+	<![CDATA[
+		SELECT  
+               t.areaName
+		FROM 
+			   area_setting t
+        GROUP BY t.areaName
+	
+	]]>
+	</sql>
+
+	
+	
+	<sql id="getTotal">
+	<![CDATA[
+		SELECT 
+			count(1)  
+		FROM 
+			area_setting t
+	  WHERE 1=1
+		   <#if areaName?exists && areaName!="" >
+			      AND areaName like "%":areaName"%"
+		   </#if>
+		    <#if mobile?exists && mobile!="" >
+			      AND mobile like "%":mobile"%"
+		   </#if>
+	]]>
+	</sql>
+	
+	
+	<sql id="addAreaSettingDTO">
+	<![CDATA[
+	    INSERT INTO  area_setting
+	          (areaName,
+               memberId,   
+               mobile     
+              )
+	        values
+	         ( :areaName,
+	           :memberId,
+               :mobile
+              )
+	        
+	]]>
+	</sql>
+	 
+   <sql id="deleteAreaSettingDTO">
+	<![CDATA[
+	  DELETE FROM area_setting WHERE id=:id
+	]]>
+	</sql>
+	
+	
+	
+	<sql id="updateAreaSettingDTO">
+	<![CDATA[
+	    UPDATE area_setting 
+	    SET  
+	           areaName   =:areaName,
+	           memberId   =:memberId,
+               mobile     =:mobile
+	    WHERE  id=:id
+	]]>
+	</sql>
+	 
+	
+</sqlMap>

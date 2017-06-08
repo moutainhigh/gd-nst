@@ -1,0 +1,36 @@
+.top{ height: 4.4rem; line-height: 4.4rem; border-top:solid 1px #fff; border-bottom: solid 1px #fff; width: 100%; background:#fff; position: fixed; top:0; z-index: 999;}
+		.top-a{ text-align: center; color: #666; font-size: 1.8rem; font-weight: 500;}
+		.top-a .icon-a{ background: url(../images/icon-1.png)no-repeat left center; background-size: .85rem 1.4rem; position: absolute; left: 1rem; color: #666; padding-left: 1rem; font-size: 1.5rem; font-weight: normal;}
+.img-text{ padding-bottom: 1.5rem; position: relative; width: 100%;}	
+.img-text-mess{ position: absolute;left: 48%;
+    top: 2.2rem;}	
+.img-text-mess p{
+	font-size: 1.3rem;
+	color: #666;
+	margin-top: 1rem;
+    padding-right: 1.5rem;
+}
+.img-step{ padding: 1.5rem; position: relative;}
+.img-step img{ padding-bottom: 1rem;}
+.main-img-text{ padding: 1rem;}
+.main-img-text img{ width: 45%; display:inline-block;vertical-align: middle; }
+.main-img-text p{ display: inline-block;vertical-align: middle; width: 52%; margin-left: 3%; font-size: 1.5rem; line-height: 2; color: #666;}
+.img-step-pos1{ 
+	position: absolute;
+    width: 45%;
+    font-size: 1.3rem;
+    color: #666;
+    top: 17rem;
+    line-height: 2;
+}
+
+.img-step-pos1{
+	position: absolute;
+    width: 40%;
+    font-size: 1.3rem;
+    color: #666;
+    top: 50%;
+    left: 50%;
+    line-height: 2;
+    margin-top: -3rem;
+}

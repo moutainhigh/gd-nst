@@ -1,0 +1,3 @@
+gd.img.HostUrl=${img.host.url}
+gd.fileUpload.url=${maven.gd.fileUpload.url}
+gd.imgSizes=${maven.gd.imgSizes}

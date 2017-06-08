@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="MqError">
+		
+	<!-- 货主分页查询我发布的货源(我发布的货源包括已发布和分配中的) -->
+	<sql id="insert">
+         <![CDATA[
+            insert into mq_error(
+	            memberId,
+	            topic,
+	            bizType,
+	            content,
+	            createUserId,
+	            remark
+            )values(
+	            :memberId,
+	            :topic,
+	            :bizType,
+	            :content,
+	            :createUserId,
+	            :remark
+            )  
+         ]]>
+     </sql>
+	
+</sqlMap>

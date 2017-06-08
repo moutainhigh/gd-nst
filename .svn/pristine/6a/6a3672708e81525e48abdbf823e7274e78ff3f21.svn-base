@@ -1,0 +1,12 @@
+package cn.gdeng.nst.admin.service.member;
+
+import cn.gdeng.nst.admin.dto.admin.MemberCerAuditDTO;
+import cn.gdeng.nst.pub.service.BaseService;
+import cn.gdeng.nst.util.web.api.ApiResult;
+
+
+public interface MemberCerAuditService extends BaseService{
+    
+    public ApiResult<Long> save(MemberCerAuditDTO dto);  
+
+}

@@ -1,0 +1,64 @@
+/** css reset s **/
+body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,button,textarea,blockquote,th,td,p{margin:0;padding:0}
+input,button,select,textarea{outline:none}
+ol,ul,li{list-style:none}
+img{vertical-align:top;border:none;}
+textarea{overflow: auto;vertical-align: top;resize:none;}
+body{width:auto;height:auto;_height:100%;min-height:100%;color:#3a3a3a; }
+body,input,textarea{font-family: Microsoft Yahei, Tahoma, Helvetica, Arial, "\5b8b\4f53", sans-serif;}
+button,input,select,textarea {font-size:100%;}
+h1,h2,h3,h4,h5,h6 {font-size:100%;font-weight:normal}
+table {border-collapse:collapse;border-spacing:0}
+em,i,b{ font-style:normal; font-weight:normal;}
+a{color:#3a3a3a;text-decoration:none;cursor:pointer;text-decoration: none;}
+a:hover{color:#069139;}
+a:focus{outline:0;}
+input,button,select,textarea{ outline:none; border:none 0; background:none;}
+input{-webkit-appearance: none;}
+body{font-size: 62.5%;}
+/** css reset e **/
+
+/*logistics s*/
+body{background: #f9f9f9;}
+.gray{color: #666666 !important;}
+/*head s*/
+.logis-head{height: .8rem;background: #fff;}
+.logis-head .mui-title{font-size: .36rem;line-height: .8rem;}
+.logis-head .mui-icon{font-size: .32rem;padding: .28rem .2rem;}
+/*head e*/
+.consignee .mui-table-view{margin: .8rem 0 0 0;background: #f9f9f9;}
+.consignee .mui-table-view:after{content: "";height: .06rem;width: 100%;
+	background: url(../images/icon_bill_line.png);}
+.consignee .mui-table-view .mui-media-object{width: .27rem;height: .36rem;margin: .16rem .24rem;}
+.consignee .mui-table-view-cell{padding: .27rem .74rem .25rem .2rem;}
+.consignee .mui-ellipsis{font-size: .24rem;}
+.consignee .mui-ellipsis .phone{float: right;margin-right: .4rem;}
+.consignee .mui-navigate-right:after{content: "";width: .15rem;height: .25rem;right: .75rem;
+	background: url(../images/icon-arrow-r.png) no-repeat;background-size: 100%;}
+
+.title{padding: .2rem;font-size: .24rem;color: #999999;}
+.logis-msg-list{background: #fff;font-size: .24rem;padding: .3rem .2rem .4rem .2rem;}
+.logis-msg-list .logis-msg-item .status{font-size: .28rem;padding: 0 .4rem;position: relative;display: inline-block;}
+.logis-msg-list .logis-msg-item:not(:first-child) .status{padding: 1rem .4rem 0 .4rem;}
+.logis-msg-list .logis-msg-item:not(:first-child) .status:after{content: "";position: absolute;
+	width: 1px;height: 1.2rem;right: -.24rem;top: -.1rem;background: url(../images/line.png);
+	background-size: 100%;}
+.logis-msg-list .logis-msg-item .status-img{width: .32rem;height: .32rem;background: url(../images/round.png) no-repeat;
+	background-size: 100%;display: inline-block;vertical-align: text-top;margin-right: .2rem;}
+.logis-msg-list .logis-msg-item .status-img.active{background-image: url(../images/round-active.png);}
+
+.goods-wrap{font-size: .28rem;background: #fff;}
+.goods-wrap p{font-size: .28rem;}
+.goods-wrap .goods-item{padding: 0 .3rem;}
+.goods-wrap .goods-result{padding-top: .3rem;padding-bottom: .3rem;}
+.goods-wrap .goods-result .goods-status{color: #ff6c00;float: right;}
+.goods-wrap .goods-explain{padding-top: .18rem;padding-bottom: .18rem;border-top: 1px #eeeeee solid;
+	border-bottom: 1px #eeeeee solid;}
+.goods-wrap .goods-explain p{margin-top: .25rem;color: #999999;}
+.goods-wrap .goods-imgs{padding: 0 .08rem .36rem .08rem;}
+.goods-wrap .goods-imgs p{padding: .18rem .22rem 0 .22rem;}
+.goods-wrap .goods-imgs .mui-table-view.mui-grid-view{background: #fff;border: none;}
+.goods-wrap .goods-imgs .mui-grid-view.mui-grid-9 .mui-table-view-cell{border: none;padding: .15rem .22rem;}
+.goods-wrap .goods-imgs img{width: 100%;border-radius: 5px;}
+
+/*logistics e*/

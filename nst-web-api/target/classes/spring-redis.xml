@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   http://www.springframework.org/schema/beans/spring-beans.xsd
+	   http://www.springframework.org/schema/context  
+       http://www.springframework.org/schema/context/spring-context.xsd
+	   http://www.springframework.org/schema/tx
+	   http://www.springframework.org/schema/tx/spring-tx.xsd"
+	   default-lazy-init="false">
+
+	<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+      
+      	<property name="maxTotal" value="-1" />
+        <property name="maxIdle" value="20" />
+        <property name="minIdle" value="5" />
+        <property name="numTestsPerEvictionRun" value="200" />
+        <property name="timeBetweenEvictionRunsMillis" value="-1" />
+        <property name="minEvictableIdleTimeMillis" value="1800000" />
+        <property name="softMinEvictableIdleTimeMillis" value="-1" />
+        <property name="maxWaitMillis" value="-1" />
+        <property name="testOnBorrow" value="true" />
+        <property name="testWhileIdle" value="true" />
+        <property name="testOnReturn" value="true" />
+        <property name="jmxEnabled" value="true" />
+        <property name="jmxNamePrefix" value="myj" />
+        <property name="blockWhenExhausted" value="true" />
+        <property name="testOnCreate" value="true" /> 
+    </bean> 
+    
+    <!-- redis配置 -->
+	<bean id="roundRobinJedisPool" class="cn.gdeng.nst.util.server.jodis.JodisPoolProxy">
+         <constructor-arg index="0" ref="jedisPoolConfig"/>
+        <constructor-arg index="1" value="10.17.1.215:2181,10.17.1.216:2181,10.17.1.217:2181"/>
+        <constructor-arg index="2" value="15000"/>
+        <constructor-arg index="3" value="15000"/>
+        <constructor-arg index="4" value="/zk/codis/db_test/proxy"/>
+    </bean>
+     <!--redis操作模板  -->
+    <bean id="jodisTemplate" class="cn.gdeng.nst.util.server.jodis.JodisTemplate">
+    	<property name="proxy" ref="roundRobinJedisPool"></property>
+    </bean>
+</beans>

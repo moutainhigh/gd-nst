@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="MemberLine">
+
+	<sql id="queryByConditionPage">
+		<![CDATA[
+		SELECT
+			ml.id,ml.memberId,ml.s_provinceId,ml.s_cityId,ml.s_areaId,ml.e_provinceId,ml.e_cityId,ml.e_areaId,ml.lineType,ml.createTime,
+			ml.s_detail,ml.e_detail,ml.isDeleted,mi.userName as publisher,mi.mobile as phone
+		FROM 
+		member_line ml
+		left join member_info mi on ml.memberId = mi.id
+		WHERE 1=1
+		<#if createTime?exists && createTime!="" >
+			AND ml.createTime=:createTime
+		</#if>
+		<#if isDeleted?exists && isDeleted!="" >
+			AND ml.isDeleted=:isDeleted
+		</#if>
+		<#if sProvinceId?exists && sProvinceId!="" >
+			AND ml.s_provinceId=:sProvinceId
+		</#if>
+		<#if sCityId?exists && sCityId!="" >
+			AND ml.s_cityId=:sCityId
+		</#if>
+		<#if sAreaId?exists && sAreaId!="" >
+			AND ml.s_areaId=:sAreaId
+		</#if>
+		<#if eProvinceId?exists && eProvinceId!="" >
+			AND ml.e_provinceId=:eProvinceId
+		</#if>
+		<#if eCityId?exists && eCityId!="" >
+			AND ml.e_cityId=:eCityId
+		</#if>
+		<#if eAreaId?exists && eAreaId!="" >
+			AND ml.e_areaId=:eAreaId
+		</#if>
+		<#if phone?exists && phone!="" >
+			AND mi.mobile like "%":phone"%"
+		</#if>
+		<#if publisher?exists && publisher!="" >
+			AND mi.userName like "%":publisher"%"
+		</#if>
+		<#if lineType?exists && lineType!="" >
+			AND ml.lineType=:lineType
+		</#if>
+	    <#if memberId?exists && memberId!="" >
+			AND ml.memberId=:memberId
+		</#if>
+		order by  ml.createTime desc
+		LIMIT :startRow,:endRow
+		]]>
+	</sql>
+
+	<sql id="queryByConditionPageCount">
+		<![CDATA[
+		select count(1) from (
+		SELECT
+			ml.memberId,ml.s_provinceId,ml.s_cityId,ml.s_areaId,ml.e_provinceId,ml.e_cityId,ml.e_areaId,ml.lineType,ml.createTime,
+			ml.isDeleted,mi.userName as publisher,mi.mobile as phone
+		FROM 
+		member_line ml
+		left join member_info mi on ml.memberId = mi.id)z
+		WHERE 1=1
+		<#if createTime?exists && createTime!="" >
+			AND z.createTime=:createTime
+		</#if>
+		<#if isDeleted?exists && isDeleted!="" >
+			AND z.isDeleted=:isDeleted
+		</#if>
+		<#if sProvinceId?exists && sProvinceId!="" >
+			AND z.s_provinceId=:sProvinceId
+		</#if>
+		<#if sCityId?exists && sCityId!="" >
+			AND z.s_cityId=:sCityId
+		</#if>
+		<#if sAreaId?exists && sAreaId!="" >
+			AND z.s_areaId=:sAreaId
+		</#if>
+		<#if eProvinceId?exists && eProvinceId!="" >
+			AND z.e_provinceId=:eProvinceId
+		</#if>
+		<#if eCityId?exists && eCityId!="" >
+			AND z.e_cityId=:eCityId
+		</#if>
+		<#if eAreaId?exists && eAreaId!="" >
+			AND z.e_areaId=:eAreaId
+		</#if>
+		<#if phone?exists && phone!="" >
+			AND z.phone like "%":phone"%"
+		</#if>
+		<#if publisher?exists && publisher!="" >
+			AND z.publisher like "%":publisher"%"
+		</#if>
+		<#if lineType?exists && lineType!="" >
+			AND z.lineType=:lineType
+		</#if>
+		  <#if memberId?exists && memberId!="" >
+			AND z.memberId=:memberId
+		</#if>
+		]]>
+	</sql>
+	
+	<sql id="showDetail">
+		<![CDATA[
+		SELECT
+			ml.*,mi.userName as publisher,mi.mobile as phone
+		FROM 
+		member_line ml
+		left join member_info mi on ml.memberId = mi.id
+		WHERE ml.id=:id
+		]]>
+	</sql>
+	
+</sqlMap>

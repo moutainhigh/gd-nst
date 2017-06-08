@@ -1,0 +1,22 @@
+package cn.gdeng.nst.admin.service.admin;
+
+import java.util.List;
+import java.util.Map;
+
+import cn.gdeng.nst.admin.dto.admin.AdminOrderDTO;
+import cn.gdeng.nst.admin.dto.admin.AdminOrderInfoDTO;
+import cn.gdeng.nst.admin.dto.admin.AdminPageDTO;
+import cn.gdeng.nst.util.web.api.ApiResult;
+
+public interface OrderInfoService {
+
+	ApiResult<AdminPageDTO> queryPage(Map<String, Object> paramMap);
+	
+	ApiResult<List<AdminOrderDTO>> getAdminOrderDTOBySourceId(Integer sourceId);
+	
+	ApiResult<AdminOrderInfoDTO> getById(Integer id);
+
+	ApiResult<List<AdminOrderInfoDTO>> queryListForExport(Map<String, Object> paramMap);
+
+	ApiResult<Integer> countTotal(Map<String, Object> paramMap);
+}

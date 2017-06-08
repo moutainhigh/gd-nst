@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<meta content="black" name="apple-mobile-web-app-status-bar-style">
+		<meta name="format-detection" content="telephone=no">
+		<meta http-equiv="x-rim-auto-match" content="none">
+		<meta name="keywords" content="" />
+		<meta name="description" content="" />
+		<meta http-equiv="pragma" content="no-cache"> 
+		<meta http-equiv="cache-control" content="no-cache"> 
+		<meta http-equiv="expires" content="0">
+		<title>联系我们</title>
+		<link rel="stylesheet" type="text/css" href="css/global.css"/>
+		<link rel="stylesheet" type="text/css" href="css/style.css"/>
+		<script src="js/jquery-1.8.3.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/jquery.mobile.custom.min.js" type="text/javascript" charset="utf-8"></script>
+	</head>
+	<body>
+		<div class="contactUs">
+			<div class="header">
+				<div class="top">
+					客服热线: <span>4007-600-800</span>
+					<img src="images/contact.jpg"/>
+				</div>
+				<div class="bottom">
+					<p>人工服务时间:</p>
+					<p class="f666">周一至周日&nbsp;9:00 - 17:30</p>
+				</div>
+			</div>
+			<ul class="con">
+				<li>
+					<p class="left">客服邮箱:</p>&nbsp;<p class="right">4007600800@gdeng.cn</p>
+				</li>
+				<li>
+					<p class="left">公司地址:</p>&nbsp;<p class="right">深圳市福田区福华一路98号卓越大厦5楼503-511室</p>
+				</li>
+				<li>
+					<p class="left">公司网址:</p>&nbsp;<p class="right">www.gdeng.cn</p>
+				</li>
+			</ul>
+			<a class="callPhone">咨询客服</a>
+		</div>
+		<script type="text/javascript">
+			function aonClick(urlType,params){
+				switch(urlType){
+				case 0:JsBridge.call(params);break;
+				}
+			}
+			
+			$(".callPhone").tap(function(){
+				var mobile="mobile=4007600800";
+				aonClick(0,mobile);
+			})
+		</script>
+	</body>
+</html>

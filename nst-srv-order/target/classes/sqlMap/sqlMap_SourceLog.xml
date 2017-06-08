@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="SourceLog">
+
+	<!-- 根据货源id查询简化日志 -->
+	<sql id="simpleQueryBySourceId">
+		<![CDATA[
+			SELECT sl.description, sl.createTime 
+			FROM source_log sl 
+			WHERE sl.sourceId=:sourceId
+		]]>
+	</sql>
+	
+	<!-- 插入日志 -->
+	<sql id="insert">
+		<![CDATA[
+			INSERT INTO source_log(sourceId,description,createUserId)
+			values(:sourceId,:description,:createUserId)
+		]]>
+	</sql>
+	
+	
+</sqlMap>

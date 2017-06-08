@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="ruleInfo">
+ 	
+ 	<sql id="queryListByPage"> 
+ 	<![CDATA[ 
+         SELECT
+			ri.id,ri.name,ri.onOff,ri.onTime,ri.offTime,ri.sourceType,
+			(select area from area where areaID=ri.provinceId ) as  provinceIdStr,
+			(select area from area where areaID=ri.cityId ) as cityIdStr,
+			(select area from area where areaID=ri.areaId ) as areaStr,		
+			su.userName as createUser,ri.createTime
+		FROM
+			rule_info ri
+		left join sysregisteruser su on ri.createUserId = su.userID
+		WHERE 1=1
+		 <#if memberId?exists && memberId != "">
+			AND  ri.createUserId = :memberId
+		</#if>	
+		<#if name?exists && name!="">
+				AND ri.name like "%":name"%"
+		</#if>
+		<#if onOff?exists && onOff!="">
+				AND ri.onOff = :onOff
+		</#if>
+		<#if sourceType?exists && sourceType!="">
+				AND ri.sourceType = :sourceType
+		</#if>
+		<#if provinceId?exists && provinceId!="">
+				AND ri.provinceId = :provinceId
+		</#if>
+		<#if cityId?exists && cityId!="">
+				AND ri.cityId = :cityId
+		</#if>
+		<#if areaId?exists && areaId!="">
+				AND ri.areaId = :areaId
+		</#if>
+		order by ri.createTime desc
+		LIMIT :startRow,:endRow
+ 		]]> 
+ 	</sql> 
+ 	<sql id="queryListByPageCount"> 
+ 	<![CDATA[ 
+         SELECT
+			count(id)
+		FROM
+			rule_info ri
+		WHERE 1=1
+	   <#if memberId?exists && memberId != "">
+			AND  ri.createUserId = :memberId
+		</#if>	
+		<#if name?exists && name!="">
+				AND ri.name like "%":name"%"
+		</#if>
+		<#if onOff?exists && onOff!="">
+				AND ri.onOff = :onOff
+		</#if>
+		<#if sourceType?exists && sourceType!="">
+				AND ri.sourceType = :sourceType
+		</#if>
+		<#if provinceId?exists && provinceId!="">
+				AND ri.provinceId = :provinceId
+		</#if>
+		<#if cityId?exists && cityId!="">
+				AND ri.cityId = :cityId
+		</#if>
+		<#if areaId?exists && areaId!="">
+				AND ri.areaId = :areaId
+		</#if>
+ 		]]> 
+ 	</sql>
+ 	<sql id="queryListByRuleName"> 
+ 	<![CDATA[ 
+         SELECT
+			count(id)
+		FROM
+			rule_info ri
+		WHERE 1=1
+	   <#if memberId?exists && memberId != "">
+			AND  ri.createUserId = :memberId
+		</#if>	
+		<#if name?exists && name!="">
+			AND ri.name = :name
+		</#if>
+		<#if onOff?exists && onOff!="">
+				AND ri.onOff = :onOff
+		</#if>
+		<#if sourceType?exists && sourceType!="">
+				AND ri.sourceType = :sourceType
+		</#if>
+		<#if provinceId?exists && provinceId!="">
+				AND ri.provinceId = :provinceId
+		</#if>
+		<#if cityId?exists && cityId!="">
+				AND ri.cityId = :cityId
+		</#if>
+ 		]]> 
+ 	</sql>
+ 	
+ 	<sql id="getById"> 
+ 	<![CDATA[ 
+ 		SELECT
+				ri.id,
+				ri. NAME,
+				ri.onOff,
+				ri.onTime,
+				ri.offTime,
+				ri.sourceType,
+				ri.provinceId,
+				ri.cityId,
+				ri.areaId,
+			    (select area from area where areaID=ri.provinceId ) as  provinceIdStr,
+				(select area from area where areaID=ri.cityId ) as cityIdStr,	
+				(select area from area where areaID=ri.areaId ) as areaStr,	
+				ri.isDeleted,
+				ri.createUserId,
+				ri.createTime,
+				ri.updateUserId,
+				ri.updateTime
+		FROM
+			rule_info ri 
+		WHERE
+			ri.id = :id
+ 	]]>
+ 	</sql>
+ 	
+ 	<sql id="update"> 
+ 	<![CDATA[ 
+ 		UPDATE
+ 			rule_info
+ 		SET
+ 			<#if name?exists && name !="">
+ 				name = :name,
+ 			</#if>
+			<#if onOff?exists && onOff!="">
+				onOff = :onOff,
+			</#if>
+			<#if onTime?exists && onTime!="">
+				onTime = :onTime,
+			</#if>
+			<#if offTime?exists && offTime!="">
+				offTime = :offTime,
+			</#if>
+			<#if sourceType?exists && sourceType !="">
+				sourceType = :sourceType,
+			</#if>
+			<#if provinceId?exists && provinceId!="">
+				 provinceId = :provinceId,
+			</#if>
+			<#if cityId?exists && cityId!="">
+					cityId = :cityId,
+			</#if>
+			<#if areaId?exists && areaId!="">
+					areaId = :areaId,
+			</#if>
+ 			updateTime = SYSDATE(),
+ 			updateUserId = :updateUserId
+ 		WHERE
+ 			id = :id
+ 	]]>
+ 	</sql>
+	
+</sqlMap>

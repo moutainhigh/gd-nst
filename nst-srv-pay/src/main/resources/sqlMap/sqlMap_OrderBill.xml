@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="OrderBill">
+	<sql id="addDTO">
+ 	<![CDATA[
+	    INSERT INTO gudeng.Order_Bill
+	    (businessNo, businessName ,tradeType,tradeDay,cardNo,
+	    clientNo,tradeMoney,sysRefeNo,fee,createUserId,createTime)
+		VALUES
+	    (:businessNo,:businessName,:tradeType,:tradeDayStr,:cardNo,
+	    :clientNo,:tradeMoney,:sysRefeNo,:fee,:createUserId,SYSDATE())
+	]]>
+	</sql>
+	
+	<sql id="getOrderBillBySysRefeNo">
+ 	<![CDATA[
+	    SELECT businessNo, businessName ,tradeType,tradeDay,cardNo,
+	    clientNo,tradeMoney,sysRefeNo,fee,createUserId,createTime,updateUserId,updateTime
+		FROM gudeng.Order_Bill t WHERE t.sysRefeNo = :sysRefeNo
+	]]>
+	</sql>
+	
+	<sql id="getOrderBillByCondition">
+	<![CDATA[
+		SELECT businessNo, businessName ,tradeType,tradeDay,cardNo,marketId,
+	    clientNo,tradeMoney,sysRefeNo,fee,useStatus,createUserId,createTime,updateUserId,updateTime
+		FROM gudeng.Order_Bill t
+		WHERE 1 = 1
+		<#if businessNo?exists && businessNo!="" >
+			AND t.businessNo =:businessNo
+		</#if>
+		<#if clientNo?exists && clientNo!="" >
+			AND t.clientNo =:clientNo
+		</#if>
+		<#if businessName?exists && businessName!="" >
+			AND t.businessName = :businessName
+		</#if>
+		<#if sysRefeNo?exists && sysRefeNo!="" >
+			AND t.sysRefeNo = :sysRefeNo
+		</#if>
+		<#if billBeginTime?exists && billBeginTime!="" >
+			AND t.tradeDay >= :billBeginTime
+		</#if>
+		<#if billEndTime?exists && billEndTime!="" >
+			AND t.tradeDay <= :billEndTime
+		</#if>
+		order by t.tradeDay desc
+		<#if startRow?exists && startRow!="" && endRow?exists && endRow!="">
+			LIMIT :startRow,:endRow 
+		</#if> 
+	]]>
+	</sql>
+	
+	<sql id="getOrderBillTotal">
+	<![CDATA[
+		SELECT count(*)
+		FROM gudeng.Order_Bill t
+		WHERE 1 = 1
+		<#if businessNo?exists && businessNo!="" >
+			AND t.businessNo =:businessNo
+		</#if>
+		<#if clientNo?exists && clientNo!="" >
+			AND t.clientNo =:clientNo
+		</#if>
+		<#if businessName?exists && businessName!="" >
+			AND t.businessName = :businessName
+		</#if>
+		<#if sysRefeNo?exists && sysRefeNo!="" >
+			AND t.sysRefeNo = :sysRefeNo
+		</#if>
+		<#if billBeginTime?exists && billBeginTime!="" >
+			AND t.tradeDay >= :billBeginTime
+		</#if>
+		<#if billEndTime?exists && billEndTime!="" >
+			AND t.tradeDay <= :billEndTime
+		</#if>
+	]]>
+	</sql>
+	
+	<sql id="getTradeMoneySum">
+	<![CDATA[
+		SELECT sum(tradeMoney)
+		FROM gudeng.Order_Bill t
+		WHERE 1 = 1
+		<#if businessNo?exists && businessNo!="" >
+			AND t.businessNo =:businessNo
+		</#if>
+		<#if clientNo?exists && clientNo!="" >
+			AND t.clientNo =:clientNo
+		</#if>
+		<#if businessName?exists && businessName!="" >
+			AND t.businessName = :businessName
+		</#if>
+		<#if sysRefeNo?exists && sysRefeNo!="" >
+			AND t.sysRefeNo = :sysRefeNo
+		</#if>
+		<#if billBeginTime?exists && billBeginTime!="" >
+			AND t.tradeDay >= :billBeginTime
+		</#if>
+		<#if billEndTime?exists && billEndTime!="" >
+			AND t.tradeDay <= :billEndTime
+		</#if>
+	]]>
+	</sql>
+	
+	<sql id="queryOrderBill">
+ 	<![CDATA[
+	    select id,businessNo, businessName ,tradeType,tradeDay , 
+	    cardNo,clientNo,tradeMoney,sysRefeNo,fee,useStatus,createUserId,createTime,updateUserId,updateTime
+	    from gudeng.order_bill t where 1=1
+	    <#if useStatus?exists && useStatus != "">
+			AND t.useStatus = :useStatus
+		</#if>
+	    <#if sysRefeNo?exists && sysRefeNo != "">
+			AND t.sysRefeNo = :sysRefeNo
+		</#if>
+		<#if sysRefeNos?exists>
+			<#assign n = sysRefeNos?size />
+			<#if n gt 0>
+				AND t.sysRefeNo in (
+				<#list sysRefeNos as sysRefeNo>
+					<#if sysRefeNo_index != n-1>
+						${sysRefeNo} ,
+					<#else>
+						${sysRefeNo}
+					</#if>
+				</#list>
+				)
+			</#if>
+		</#if>
+	]]>
+	</sql>
+	
+	<sql id="updateOrderBill">
+	<![CDATA[
+	    update gudeng.order_bill t set t.updateTime = SYSDATE()
+	    <#if updateUserId?exists && updateUserId != "">
+			,t.updateUserId = :updateUserId
+		</#if>
+     	<#if useStatus?exists && useStatus != "">
+			,t.useStatus = :useStatus
+		</#if>
+	    where 1=1
+	    <#if sysRefeNo?exists && sysRefeNo != "">
+			AND t.sysRefeNo = :sysRefeNo
+		</#if>
+	    <#if sysRefeNos?exists>
+			<#assign n = sysRefeNos?size />
+			<#if n gt 0>
+				AND t.sysRefeNo in (
+				<#list sysRefeNos as sysRefeNo>
+					<#if sysRefeNo_index != n-1>
+						${sysRefeNo} ,
+					<#else>
+						${sysRefeNo}
+					</#if>
+				</#list>
+				)
+			</#if>
+		</#if>
+	]]>
+	</sql>
+</sqlMap>

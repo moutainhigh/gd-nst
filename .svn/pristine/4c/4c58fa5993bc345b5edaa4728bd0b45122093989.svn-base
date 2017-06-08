@@ -1,0 +1,52 @@
+package cn.gdeng.nst.admin.server.admin.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import cn.gdeng.nst.admin.dto.admin.AdminPageDTO;
+import cn.gdeng.nst.admin.dto.admin.MemberCerDTO;
+import cn.gdeng.nst.admin.service.member.MemberCerService;
+import cn.gdeng.nst.dao.BaseDao;
+import cn.gdeng.nst.enums.MsgCons;
+import cn.gdeng.nst.util.web.api.ApiResult;
+
+import com.alibaba.dubbo.config.annotation.Service;
+
+@Service
+public class MemberCerServiceImpl implements MemberCerService {
+    
+    @Resource
+    private BaseDao<?> baseDao;
+
+    @Override
+    public ApiResult<AdminPageDTO> findByConditions(Map<String, Object> paramMap) {
+        int total = baseDao.queryForObject("Membercer.countByConditions", paramMap, Integer.class);
+        List<Map<String,Object>> list = baseDao.queryForList("Membercer.findByConditions", paramMap);
+        AdminPageDTO page = new AdminPageDTO(total, list);
+        ApiResult<AdminPageDTO> apiResult = new ApiResult<AdminPageDTO>(page, MsgCons.C_10000, MsgCons.M_10000);
+        return apiResult;
+    }
+
+    @Override
+    public ApiResult<MemberCerDTO> findOne(Map<String, Object> paramMap) {
+        MemberCerDTO dto =  (MemberCerDTO) baseDao.queryForObject("Membercer.findOne", paramMap,MemberCerDTO.class);
+        ApiResult<MemberCerDTO> apiResult =  new ApiResult<MemberCerDTO>(dto, MsgCons.C_10000, MsgCons.M_10000);
+        return apiResult;
+    }
+    
+    @Override
+    public ApiResult<Integer> countTotal(Map<String, Object> paramMap) {
+        int total = baseDao.queryForObject("Membercer.countByConditions", paramMap, Integer.class);
+        ApiResult<Integer> apiResult = new ApiResult<Integer>(total, MsgCons.C_10000, MsgCons.M_10000);
+        return apiResult;
+    }
+
+    @Override
+    public ApiResult<?> findAll(Map<String, Object> paramMap) {
+        List<?> list = baseDao.queryForList("Membercer.findAll", paramMap);
+        ApiResult<List<?>> apiResult = new ApiResult<List<?>>(list, MsgCons.C_10000, MsgCons.M_10000);
+        return apiResult;
+    }
+}

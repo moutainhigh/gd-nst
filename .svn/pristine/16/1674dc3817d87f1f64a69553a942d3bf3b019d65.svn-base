@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="MemberCountApi">    
+    
+    
+ <sql id="findByDriverMemberId">
+ select mc.memberId,mc.driverIcome,mc.driverOrderCount 
+ from 
+ member_count mc 
+ where mc.memberId=:memberId
+ </sql>
+  
+    
+ <sql id="findByCompanyMemberId">
+ select mc.memberId,mc.confirmSourceCount,mc.AutoSourceCount 
+ from 
+ member_count mc 
+ where mc.memberId=:memberId
+ </sql>
+ 
+ 
+ <sql id="updateMemberCount">
+  	<![CDATA[ 
+		 UPDATE member_count
+		SET 
+		updateTime=now()
+		<#if driverIcome?exists && driverIcome != "">
+		,driverIcome = driverIcome + :driverIcome
+		</#if>
+		<#if driverOrderCount?exists && driverOrderCount != "">
+		,driverOrderCount = driverOrderCount + 1
+		</#if>
+		<#if confirmSourceCount?exists && confirmSourceCount != "">
+		,confirmSourceCount = confirmSourceCount + 1
+		</#if>
+		<#if autoSourceCount?exists && autoSourceCount != "">
+		,AutoSourceCount = autoSourceCount + 1
+		</#if>
+		WHERE
+			memberId =:memberId
+	]]> 
+ </sql>
+ 
+ 
+ <sql id="findMemberCountByMemberIdCount">
+  	<![CDATA[ 
+	select count(1) from member_count where memberId =:memberId
+	]]> 
+ </sql>
+
+</sqlMap>

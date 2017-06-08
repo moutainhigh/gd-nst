@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="RuleLineApi">    
+    
+  <sql id="ruleLineList">
+	select rl.id,rl.lineType,rl.memberId,rl.s_detail,rl.e_detail
+	from
+	rule_line rl
+	where
+	 isDeleted=0 and 
+	rl.memberId=:memberId
+  </sql>  
+
+
+   <sql id="deleteRuleLineById">
+    update rule_line
+    set isDeleted=1
+    where id=:id and memberId=:memberId
+	</sql>
+	
+  <sql id="ruleLineListCount">
+	select count(1)
+	from
+	rule_line rl
+	where
+	 isDeleted=0 and 
+	rl.memberId=:memberId
+  </sql>  
+
+<sql id="getLineTotal">
+   	<![CDATA[ 
+   	select  
+         count(1)
+       from rule_line l  
+       where
+       l.isDeleted=0
+       and
+       l.memberId=:memberId
+       <#if s_provinceId?exists && s_provinceId!="" >
+			AND l.s_provinceId=:s_provinceId
+		</#if>
+		<#if s_cityId?exists && s_cityId!="" >
+			AND l.s_cityId=:s_cityId
+		</#if>
+		<#if s_areaId?exists && s_areaId!="" >
+			AND l.s_areaId=:s_areaId
+		</#if>
+		<#if e_provinceId?exists && e_provinceId!="" >
+			AND l.e_provinceId=:e_provinceId
+		<#else>
+		    
+		</#if>
+		<#if e_cityId?exists && e_cityId!="" >
+			AND l.e_cityId=:e_cityId
+		</#if>
+		<#if e_areaId?exists && e_areaId!="" >
+			AND l.e_areaId=:e_areaId
+		</#if>
+		
+		
+		<#if e_provinceId==null || e_provinceId== "">
+			AND l.e_provinceId is null
+		</#if>
+		<#if e_provinceId?exists && e_provinceId!="" && (e_cityId==null || e_cityId=="")>
+			AND l.e_cityId is null
+		</#if>
+		<#if e_cityId?exists && e_cityId!="" && (e_areaId==null || e_areaId=="")>
+			AND l.e_areaId is null
+		</#if>		
+		]]>
+       
+</sql>  
+
+
+</sqlMap>

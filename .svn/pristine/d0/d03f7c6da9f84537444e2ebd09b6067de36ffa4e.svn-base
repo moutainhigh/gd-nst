@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sqlMap namespace="OrderPayDetail">
+	<sql id="queryOneByMap"> 
+ 	<![CDATA[ 
+        SELECT
+			id,
+			orderNo,
+			payStatus,
+			payType,
+			payTime,
+			orderType,
+			platformPayWater,
+			thirdPartyPayWater,
+			payAccountNo,
+			payName,
+			receiptNo,
+			receiptName,
+			payMoney
+		FROM
+			order_paydetail
+		WHERE
+			orderNo = :orderNo
+		<#if orderType?exists && orderType!="">
+			AND orderType = :orderType
+		</#if>
+		ORDER BY createTime DESC
+		LIMIT 1   
+ 	]]> 
+ 	</sql>
+</sqlMap>
